@@ -1,0 +1,44 @@
+<RCC>
+    <qresource prefix="/">
+        <file>_down.png</file>
+        <file>_left.png</file>
+        <file>_right.png</file>
+        <file>_up.png</file>
+        <file>down.png</file>
+        <file>left.png</file>
+        <file>right.png</file>
+        <file>up.png</file>
+        <file>esc.png</file>
+        <file>init.png</file>
+        <file>btn_close.png</file>
+        <file>btn_min.png</file>
+        <file>btn_start.png</file>
+        <file>jizhan.png</file>
+        <file>btn_addtask.png</file>
+        <file>btn_addcoor.png</file>
+        <file>bg.png</file>
+        <file>bg_1.png</file>
+        <file>bg_2.png</file>
+        <file>btn_run.png</file>
+        <file>btn_clearpath.png</file>
+        <file>btn_cleartask.png</file>
+        <file>btn_connect.png</file>
+        <file>btn_createpath.png</file>
+        <file>btn_disconnect.png</file>
+        <file>btn_edittask.png</file>
+        <file>btn_setpath.png</file>
+        <file>btn_area.png</file>
+        <file>btn_clear.png</file>
+        <file>btn_contral.png</file>
+        <file>btn_video.png</file>
+        <file>no.png</file>
+        <file>winicon.png</file>
+        <file>yes.png</file>
+        <file>btn_stop.png</file>
+        <file>map.png</file>
+        <file>btn_retry.png</file>
+        <file>fang.png</file>
+        <file>jia.png</file>
+        <file>btn_back.png</file>
+    </qresource>
+</RCC>
