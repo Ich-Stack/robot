@@ -3,33 +3,33 @@
 
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QtSerialPort>
-#include<QMessageBox>
+#include <QTableWidgetItem>
+#include <QWebEngineView>
+#include <QApplication>
+#include <QMediaPlayer>
+#include <QWebChannel>
+#include <QMessageBox>
+#include <QWebSocket>
+#include <iostream>
+#include <stdlib.h>
 #include <QWidget>
-#include<QString>
-#include<QDir>
-#include<QScreen>
-#include<QTimer>
-#include<QRect>
-#include<QApplication>
-#include<QMediaPlayer>
-#include<QWebEngineView>
-#include"videowidget.h"
-#include<QTimer>
-#include<QWebChannel>
-#include<QTableWidgetItem>
-#include<QWebSocket>
-#include<stdlib.h>
-#include"com/comm.h"
-#include<QPixmap>
-#include"dialog.h"
-#include "algorithm/astar.h"
-#include<list>
-#include<iostream>
-#include"algorithm/cs.h"
-#include"contral.h"
-#include"edit.h"
+#include <QString>
+#include <QScreen>
+#include <QPixmap>
+#include <QTimer>
+#include <thread>
+#include <QRect>
+#include <list>
+#include <QDir>
 #include "mycontral/mybtn.h"
-#include<thread>
+#include "algorithm/astar.h"
+#include "algorithm/cs.h"
+#include "videowidget.h"
+#include "mqtt/mqtt.h"
+#include "com/comm.h"
+#include "contral.h"
+#include "dialog.h"
+#include "edit.h"
 
 struct taskNameAndCode{
     int code;
@@ -130,6 +130,7 @@ private:
 //-----------------------------------------------------------------
     //窗口样式
     //void singShot(const size_t &sec);
+    void setStateColor(const unsigned char &r, const unsigned char &g, const unsigned char &b);
 //-----------------------------------------------------------------
     //串口部分
     COMM *m_spcomm;
@@ -162,6 +163,7 @@ private:
     void rebuildPath(APoint &curpoint);
 //-----------------------------------------------------------------
     //MQTT协议连接物联网
+    MQTT *m_client;
     //遥控
     CONTRAL *contral;
 //-----------------------------------------------------------------

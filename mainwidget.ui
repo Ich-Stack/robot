@@ -61,7 +61,7 @@
     <rect>
      <x>3</x>
      <y>628</y>
-     <width>436</width>
+     <width>489</width>
      <height>152</height>
     </rect>
    </property>
@@ -1595,11 +1595,17 @@ QHeaderView::section
   <widget class="MYFRAME" name="frame_8">
    <property name="geometry">
     <rect>
-     <x>439</x>
+     <x>489</x>
      <y>628</y>
-     <width>184</width>
+     <width>134</width>
      <height>152</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>184</horstretch>
+     <verstretch>152</verstretch>
+    </sizepolicy>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -1607,6 +1613,191 @@ QHeaderView::section
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <widget class="QWidget" name="widget_2" native="true">
+      <property name="styleSheet">
+       <string notr="true">QLabel{color: rgb(124, 124, 124)};
+background-color: rgb(255, 255, 255);
+border-radius:10px;</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="leftMargin">
+        <number>5</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="widget_7" native="true">
+         <widget class="QLabel" name="label_s1">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>2</y>
+            <width>20</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 0, 0);border-radius:10px;
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_17">
+          <property name="geometry">
+           <rect>
+            <x>25</x>
+            <y>0</y>
+            <width>60</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>OPPOSans</family>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>机械爪</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_11" native="true">
+         <widget class="QLabel" name="label_s2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>2</y>
+            <width>20</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 0, 0);border-radius:10px;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_18">
+          <property name="geometry">
+           <rect>
+            <x>25</x>
+            <y>0</y>
+            <width>60</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>OPPOSans</family>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>摄像头</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_8" native="true">
+         <widget class="QLabel" name="label_s3">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>2</y>
+            <width>20</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 0, 0);border-radius:10px;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_19">
+          <property name="geometry">
+           <rect>
+            <x>25</x>
+            <y>0</y>
+            <width>75</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>OPPOSans</family>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>投食设备</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_9" native="true">
+         <widget class="QLabel" name="label_s4">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>2</y>
+            <width>20</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 0, 0);border-radius:10px;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_20">
+          <property name="geometry">
+           <rect>
+            <x>25</x>
+            <y>0</y>
+            <width>75</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>OPPOSans</family>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>避障设备</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <customwidgets>

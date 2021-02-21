@@ -29,27 +29,27 @@ SOURCES += \
     algorithm/astar.cpp \
     algorithm/cs.cpp \
     com/comm.cpp \
+    mqtt/mqtt.cpp \
     mycontral/mybtn.cpp \
     mycontral/myframe.cpp \
     mycontral/mylabel.cpp \
-    state.cpp \
     widget/contral.cpp \
     widget/dialog.cpp \
     widget/edit.cpp \
     widget/init.cpp \
     widget/mainwidget.cpp \
-    widget/videowidget.cpp
+    widget/videowidget.cpp \
 
 HEADERS += \
     algorithm/astar.h \
     algorithm/cs.h \
     algorithm/minheap.h \
     com/comm.h \
+    mqtt/mqtt.h \
     mycontral/mybtn.h \
     mycontral/myframe.h \
     mycontral/mylabel.h \
     sdk/HCNetSDK.h \
-    state.h \
     widget/contral.h \
     widget/dialog.h \
     widget/edit.h \
@@ -77,6 +77,12 @@ RESOURCES += \
 DISTFILES +=
 
 win32: LIBS += -L$$PWD/lib/ -lHCNetSDK
+
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lQt5Mqtt
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lQt5Mqttd
 
 INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include

@@ -26,6 +26,7 @@ MainWidget::MainWidget(QWidget *parent):
     sa = new CS();
     edit = new EDIT();
     astar = new ASTAR();
+    m_client = new MQTT();
     m_spcomm = new COMM();
     dialog = new Dialog();
     workTimer = new QTimer();
@@ -720,6 +721,8 @@ void MainWidget::on_btn_opencpm_clicked()
                 ui->label_UWB->timer->start(500);
                 ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
                 ui->textEdit_total->append("成功连接设备!");
+                setStateColor(0, 255, 0);                       //改变状态指示灯颜色
+                m_client->sub("abc");
                 ui->label_UWB->getCurrent(300, 300);
                 //ui->lineEdit_currentLng_x->setText("300");
                 //ui->lineEdit_currentLat_y->setText("301");
@@ -748,6 +751,7 @@ void MainWidget::on_btn_closecom_clicked()          //关闭串口
         ui->label_UWB->timer->stop();        //停用定时器
         sendDataTimer->stop();
         ui->textEdit_total->append("设备已断开连接!");
+        setStateColor(255, 0, 0);
     }
 }
 
@@ -1264,6 +1268,15 @@ void MainWidget::rebuildPath(APoint &curpoint)
     ui->lineEdit_nowTask->setText(ui->label_UWB->UWBtask[nowTask_index].UWBTaskName);                 //显示当前任务名称
     ui->lineEdit_distant->setText(QString::number(dis0[path.route[0]]*dialog->getLength()/600/1000, 'f', 2));             //显示距离
     sendDataTimer->start(300);                                                                          //打开定时器，发送数据
+}
+
+void MainWidget::setStateColor(const unsigned char &r, const unsigned char &g, const unsigned char &b)
+{
+    const QString str = QString("border-radius:10px; background-color: rgb(%1, %2, %3)").arg(r).arg(g).arg(b);
+    ui->label_s1->setStyleSheet(str);
+    ui->label_s2->setStyleSheet(str);
+    ui->label_s3->setStyleSheet(str);
+    ui->label_s4->setStyleSheet(str);
 }
 
 void MainWidget::area_GPS()
