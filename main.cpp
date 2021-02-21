@@ -9,9 +9,9 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWidget *mainwidget = new MainWidget();
-//    mainwidget->setWindowIcon(QIcon(":/winicon.png"));
+//    mainwidget->setWindowIcon(QIcon(":/picture/winicon.png"));
 //    INIT *start = new INIT();
-//    start->setWindowIcon(QIcon(":/winicon.png"));
+//    start->setWindowIcon(QIcon(":/picture/winicon.png"));
 //    start->show();
 
 //    QObject::connect(start, &INIT::btn_start_click, [=](){

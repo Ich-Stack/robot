@@ -12,12 +12,12 @@ CONTRAL::CONTRAL(QWidget *parent) :
     this->setAttribute(Qt::WA_TranslucentBackground);
     this->setStyleSheet("QPushButton{border:0px}");
 
-    ui->btn_cent->setNorAndPre(":/jia.png", ":/fang.png");
-    ui->btn_up->setNorAndPre(":/_up.png", ":/up.png");
-    ui->btn_down->setNorAndPre(":/_down.png", ":/down.png");
-    ui->btn_left->setNorAndPre(":/_left.png", ":/left.png");
-    ui->btn_right->setNorAndPre(":/_right.png", ":/right.png");
-    ui->btn_esc->setNorAndPre(":/esc.png");
+    ui->btn_cent->setNorAndPre(":/picture/jia.png", ":/picture/fang.png");
+    ui->btn_up->setNorAndPre(":/picture/_up.png", ":/picture/up.png");
+    ui->btn_down->setNorAndPre(":/picture/_down.png", ":/picture/down.png");
+    ui->btn_left->setNorAndPre(":/picture/_left.png", ":/picture/left.png");
+    ui->btn_right->setNorAndPre(":/picture/_right.png", ":/picture/right.png");
+    ui->btn_esc->setNorAndPre(":/picture/esc.png");
 }
 
 CONTRAL::~CONTRAL()

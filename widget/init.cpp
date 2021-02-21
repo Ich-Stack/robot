@@ -14,9 +14,9 @@ INIT::INIT(QWidget *parent) :
     this->installEventFilter(this);
     this->setStyleSheet("QWidget{border:0px}");
     this->setStyleSheet("QPushButton{border:0px}");
-    ui->btn_start->setNorAndPre(":/btn_start.png");
-    ui->btn_min->setNorAndPre(":/btn_min.png");
-    ui->btn_close->setNorAndPre(":/btn_close.png");
+    ui->btn_start->setNorAndPre(":/picture/btn_start.png");
+    ui->btn_min->setNorAndPre(":/picture/btn_min.png");
+    ui->btn_close->setNorAndPre(":/picture/btn_close.png");
 }
 
 INIT::~INIT()
@@ -28,7 +28,7 @@ void INIT::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);  // 反锯齿;
-    painter.drawPixmap(rect(),QPixmap(":/init.png"),QRect());
+    painter.drawPixmap(rect(),QPixmap(":/picture/init.png"),QRect());
 }
 
 bool INIT::eventFilter(QObject *obj, QEvent *evt)

@@ -25,7 +25,7 @@ VideoWidget::VideoWidget(QWidget *parent) :
     this->setWindowFlags(Qt::FramelessWindowHint);              //隐藏窗口框架
 
     ui->widget->installEventFilter(this);
-    ui->btn_close->setNorAndPre(":/btn_close.png");
+    ui->btn_close->setNorAndPre(":/picture/btn_close.png");
 }
 
 VideoWidget::~VideoWidget()

@@ -63,7 +63,6 @@ FORMS += \
     edit.ui \
     init.ui \
     mainwidget.ui \
-    state.ui \
     videowidget.ui \
 
 # Default rules for deployment.
@@ -77,9 +76,6 @@ RESOURCES += \
 DISTFILES +=
 
 win32: LIBS += -L$$PWD/lib/ -lHCNetSDK
-
-INCLUDEPATH += $$PWD/include
-DEPENDPATH += $$PWD/include
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lQt5Mqtt
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lQt5Mqttd

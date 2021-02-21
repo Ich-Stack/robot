@@ -11,8 +11,8 @@ Dialog::Dialog(QWidget *parent) :
     ui->setupUi(this);
     ui->lineEdit_long->setValidator(new QIntValidator(1, 999, this) );          //基站的输入窗口，输入限制
     ui->lineEdit_wide->setValidator(new QIntValidator(1, 999, this) );
-    ui->btn_ok->setNorAndPre(":/yes.png");
-    ui->btn_cancel->setNorAndPre(":/no.png");
+    ui->btn_ok->setNorAndPre(":/picture/yes.png");
+    ui->btn_cancel->setNorAndPre(":/picture/no.png");
     this->setWindowFlags(Qt::FramelessWindowHint);
 }
 
@@ -23,7 +23,6 @@ Dialog::~Dialog()
 void Dialog::closeEvent(QCloseEvent *)                                  //关闭窗口事件
 {
     ui->lineEdit_long->setFocus();
-    isclick = true;
 }
 
 void Dialog::on_btn_ok_clicked()
@@ -44,9 +43,7 @@ void Dialog::on_btn_ok_clicked()
 
 void Dialog::on_btn_cancel_clicked()
 {
-    length = 1;
-    width = 1;
-    isclick = true;
+    isclick = false;
     this->close();
 }
 

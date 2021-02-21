@@ -209,7 +209,7 @@ border-radius:10px;</string>
       </property>
       <property name="styleSheet">
        <string notr="true">border-radius:10px;
-background-image: url(:/map.png);
+background-image: url(:/picture/map.png);
 border:1px solid gray;</string>
       </property>
       <property name="text">
@@ -256,7 +256,7 @@ border:1px solid gray;</string>
      </size>
     </property>
     <property name="styleSheet">
-     <string notr="true">QWidget{background-image: url(:/bg_2.png)}
+     <string notr="true">QWidget{background-image: url(:/picture/bg_2.png)}
 QLabel{color: rgb(124, 124, 124)}
 QPushButton{border:0px}</string>
     </property>
@@ -826,7 +826,7 @@ color: rgb(124, 124, 124);</string>
      </sizepolicy>
     </property>
     <property name="styleSheet">
-     <string notr="true">QWidget{broder:1px solid gray;border-radius:10px;background-image: url(:/bg_1.png);}
+     <string notr="true">QWidget{broder:1px solid gray;border-radius:10px;background-image: url(:/picture/bg_1.png);}
 QLabel{color: rgb(124, 124, 124)}
 
 </string>
@@ -1111,7 +1111,7 @@ color: rgb(124, 124, 124);</string>
      </sizepolicy>
     </property>
     <property name="styleSheet">
-     <string notr="true">QWidget{broder:1px solid gray;border-radius:10px;background-image: url(:/bg.png);}
+     <string notr="true">QWidget{broder:1px solid gray;border-radius:10px;background-image: url(:/picture/bg.png);}
 QLabel{color: rgb(124, 124, 124)}
 
 </string>
@@ -1617,9 +1617,7 @@ QHeaderView::section
     <item row="0" column="0">
      <widget class="QWidget" name="widget_2" native="true">
       <property name="styleSheet">
-       <string notr="true">QLabel{color: rgb(124, 124, 124)};
-background-color: rgb(255, 255, 255);
-border-radius:10px;</string>
+       <string notr="true">background-color: rgb(255, 255, 255);border-radius:10px;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
@@ -1671,6 +1669,9 @@ border-radius:10px;</string>
             <pointsize>11</pointsize>
            </font>
           </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(124, 124, 124);</string>
+          </property>
           <property name="text">
            <string>机械爪</string>
           </property>
@@ -1709,6 +1710,9 @@ border-radius:10px;</string>
             <family>OPPOSans</family>
             <pointsize>11</pointsize>
            </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(124, 124, 124);</string>
           </property>
           <property name="text">
            <string>摄像头</string>
@@ -1749,6 +1753,9 @@ border-radius:10px;</string>
             <pointsize>11</pointsize>
            </font>
           </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(124, 124, 124);</string>
+          </property>
           <property name="text">
            <string>投食设备</string>
           </property>
@@ -1787,6 +1794,9 @@ border-radius:10px;</string>
             <family>OPPOSans</family>
             <pointsize>11</pointsize>
            </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(124, 124, 124);</string>
           </property>
           <property name="text">
            <string>避障设备</string>

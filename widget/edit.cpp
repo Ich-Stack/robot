@@ -14,9 +14,9 @@ EDIT::EDIT(QWidget *parent) :
     this->setStyleSheet("QPushButton{border:0px}");
 
     ui->widget->installEventFilter(this);
-    ui->btn_close->setNorAndPre(":/btn_close.png");
-    ui->btn_addcoor->setNorAndPre(":/btn_addcoor.png");
-    ui->btn_addtask->setNorAndPre(":/btn_addtask.png");
+    ui->btn_close->setNorAndPre(":/picture/btn_close.png");
+    ui->btn_addcoor->setNorAndPre(":/picture/btn_addcoor.png");
+    ui->btn_addtask->setNorAndPre(":/picture/btn_addtask.png");
 
     QRegularExpressionValidator *regExpress = new QRegularExpressionValidator(QRegularExpression("^\\d{0,3}$"));
     ui->lineEdit_taskcode->setValidator(regExpress);

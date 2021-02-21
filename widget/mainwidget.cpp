@@ -37,19 +37,19 @@ MainWidget::MainWidget(QWidget *parent):
     memset(m_setPathPointLng, 0.0, sizeof(double) * 50);        //初始化数组
     memset(m_setPathPointLat, 0.0, sizeof(double) * 50);
 
-    ui->btn_editTask->setNorAndPre(":/btn_edittask.png");
-    ui->btn_createPath->setNorAndPre(":/btn_createpath.png");
-    ui->btn_clearTask->setNorAndPre(":/btn_cleartask.png");
-    ui->btn_run->setNorAndPre(":/btn_run.png", ":/btn_stop.png");
-    ui->btn_opencpm->setNorAndPre(":/btn_connect.png");
-    ui->btn_setUWBPath->setNorAndPre(":/btn_setpath.png");
-    ui->btn_clearPath->setNorAndPre(":/btn_clearpath.png");
-    ui->btn_closecom->setNorAndPre(":/btn_disconnect.png");
-    ui->btn_contral->setNorAndPre(":/btn_contral.png");
-    ui->btn_area->setNorAndPre(":/btn_area.png");
-    ui->btn_video->setNorAndPre(":/btn_video.png");
-    ui->btn_back->setNorAndPre(":/btn_back.png");
-    ui->btn_clearTime->setNorAndPre(":/btn_clear.png");
+    ui->btn_editTask->setNorAndPre(":/picture/btn_edittask.png");
+    ui->btn_createPath->setNorAndPre(":/picture/btn_createpath.png");
+    ui->btn_clearTask->setNorAndPre(":/picture/btn_cleartask.png");
+    ui->btn_run->setNorAndPre(":/picture/btn_run.png", ":/picture/btn_stop.png");
+    ui->btn_opencpm->setNorAndPre(":/picture/btn_connect.png");
+    ui->btn_setUWBPath->setNorAndPre(":/picture/btn_setpath.png");
+    ui->btn_clearPath->setNorAndPre(":/picture/btn_clearpath.png");
+    ui->btn_closecom->setNorAndPre(":/picture/btn_disconnect.png");
+    ui->btn_contral->setNorAndPre(":/picture/btn_contral.png");
+    ui->btn_area->setNorAndPre(":/picture/btn_area.png");
+    ui->btn_video->setNorAndPre(":/picture/btn_video.png");
+    ui->btn_back->setNorAndPre(":/picture/btn_back.png");
+    ui->btn_clearTime->setNorAndPre(":/picture/btn_clear.png");
 
     QString pwd = QDir::currentPath() + "/jstest2.html";
     channel->registerObject((pwd),this);                                       //创建与JS连接的对象content
@@ -658,7 +658,7 @@ bool MainWidget::eventFilter(QObject *watched, QEvent *event)       //UWB
 void MainWidget::magicTime()                                        //在Label画图
 {
     QPixmap *pixmap = new QPixmap();                                         //美观
-    pixmap->load(":/jizhan.png");
+    pixmap->load(":/picture/jizhan.png");
     *pixmap = pixmap->scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);  // 按比例缩放
     QPainter painter(ui->label_UWB);
     painter.drawPixmap(530, 525, *pixmap);
@@ -699,44 +699,54 @@ void MainWidget::on_btn_opencpm_clicked()
     {
         dialog->setIsClick(false);
         if(m_spcomm->isOpen)
+        {
+            ui->textEdit_total->append("设备已连接!");
             return;
-        foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())        //遍历所有串口
-        {
-            serialNumber = info.serialNumber();
-            _info = info;
-            qDebug() << "Name : " << info.portName();                                   //打印串口信息
-            qDebug() << "Description : " << info.description();
-            qDebug() << "Manufacturer: " << info.manufacturer();
-            qDebug() << "Serial Number: " << info.serialNumber();
-            qDebug() << "System Location: " << info.systemLocation();
-        }
-        if(serialNumber == "0001")                              //连接特定的串口
-        {
-            m_spcomm->setBaudRate(9600);                        //波特率9600
-            m_spcomm->_setPort(_info);                          //设置端口，连接
-            if(m_spcomm->open())
-            {
-                m_spcomm->isOpen = true;
-                ui->label_UWB->setRatio(dialog->getRatio());    //设置补偿倍数
-                ui->label_UWB->timer->start(500);
-                ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
-                ui->textEdit_total->append("成功连接设备!");
-                setStateColor(0, 255, 0);                       //改变状态指示灯颜色
-                m_client->sub("abc");
-                ui->label_UWB->getCurrent(300, 300);
-                //ui->lineEdit_currentLng_x->setText("300");
-                //ui->lineEdit_currentLat_y->setText("301");
-                //-----------------------------------------------------------------------------------------------------------------------------
-            }
-            else
-            {
-                ui->textEdit_total->append("无法连接设备!");
-            }
         }
         else
         {
-            ui->textEdit_total->append("端口信息错误!");
+            foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())        //遍历所有串口
+            {
+                serialNumber = info.serialNumber();
+                _info = info;
+//                qDebug() << "Name : " << info.portName();                                   //打印串口信息
+//                qDebug() << "Description : " << info.description();
+//                qDebug() << "Manufacturer: " << info.manufacturer();
+//                qDebug() << "Serial Number: " << info.serialNumber();
+//                qDebug() << "System Location: " << info.systemLocation();
+            }
+            if(serialNumber == "0001")                              //连接特定的串口
+            {
+                m_spcomm->setBaudRate(9600);                        //波特率9600
+                m_spcomm->_setPort(_info);                          //设置端口，连接
+                if(m_spcomm->open())
+                {
+                    m_spcomm->isOpen = true;
+                    ui->label_UWB->setRatio(dialog->getRatio());    //设置补偿倍数
+                    ui->label_UWB->timer->start(500);
+                    ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
+                    ui->textEdit_total->append("成功连接设备!");
+                    setStateColor(0, 255, 0);                       //改变状态指示灯颜色
+                    m_client->sub("abc");
+                    ui->label_UWB->getCurrent(300, 300);
+                    //ui->lineEdit_currentLng_x->setText("300");
+                    //ui->lineEdit_currentLat_y->setText("301");
+                    //-----------------------------------------------------------------------------------------------------------------------------
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                ui->textEdit_total->append("端口信息错误！\n无法连接设备!");
+            }
         }
+    }
+    else
+    {
+        return;
     }
 }
 
