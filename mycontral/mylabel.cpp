@@ -251,7 +251,8 @@ void myLabel::getCurrent(double x, double y)                      //获取mainwi
 //    if(isSetPoint && initIsTimeout && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     if(!isCreatePath && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     {
-        start = APoint(_x, _y);                                     //设备开始的位置
+        APoint temp(_x, _y);
+        start = temp;                                     //设备开始的位置
         pointbuf.x[0] = _x;                                        //记录开机的坐标
         pointbuf.y[0] = _y;
     }
@@ -259,7 +260,7 @@ void myLabel::getCurrent(double x, double y)                      //获取mainwi
     {
         double end_dis = pow(x - end.at(test).x*10, 2) + pow((y - end.at(test).y*10)/ratio, 2);
         double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
-        qDebug() << "the dis : " << node_dis << ", " << node.at(node_index).x() << ", " << node.at(node_index).y() << ", " << x << ", " << y;
+        //qDebug() << "the dis : " << node_dis << ", " << node.at(node_index).x() << ", " << node.at(node_index).y() << ", " << x << ", " << y;
         if(node_dis < 3000)//3000           //到达节点发送下一个节点
         {
             //qDebug() << "node point : " << node[node_index].x << ',' << node[node_index].y;
@@ -337,12 +338,11 @@ void myLabel::clearTaskModel()                                   //清空enableA
     {
         UWBtask[i].x = 0;
         UWBtask[i].y = 0;
-        //enableArea.x[i] = 0;                              清除可行域数组
-        //enableArea.y[i] = 0;
         UWBtask[i].UWBTaskCode = 0;
         UWBtask[i].UWBTaskName.clear();
         UWBtask[i].UWBTaskLevel.clear();
     }
+    //start = APoint(_x, _y);                                 //清除任务，记录当前任务点
     update();
 }
 

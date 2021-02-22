@@ -67,6 +67,7 @@ public slots:
     void receiveSetPathPoint(QString lng, QString lat);
     void receiveShipCurrentPoint(QString lng, QString lat);
     void area_GPS();
+    void slot_createFinish(const QString text);
 
 private slots:
     int find_taskName(int code);
@@ -89,6 +90,7 @@ private slots:
     
 signals:
     void init_close();
+    void createFinish(const QString text);
 
 private:
     Ui::MainWidget *ui;

@@ -228,6 +228,10 @@ border:1px solid gray;</string>
      <height>170</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">
+</string>
+   </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
    </property>
@@ -420,6 +424,9 @@ color: rgb(124, 124, 124);</string>
        <height>45</height>
       </rect>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -449,6 +456,9 @@ color: rgb(124, 124, 124);</string>
       <font>
        <pointsize>12</pointsize>
       </font>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
      </property>
      <property name="styleSheet">
       <string notr="true"/>
@@ -569,7 +579,7 @@ color: rgb(124, 124, 124);</string>
       </rect>
      </property>
      <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
+      <enum>Qt::NoFocus</enum>
      </property>
      <property name="text">
       <string/>
@@ -700,6 +710,9 @@ color: rgb(124, 124, 124);</string>
        <pointsize>12</pointsize>
       </font>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -787,7 +800,7 @@ color: rgb(124, 124, 124);</string>
       </rect>
      </property>
      <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
+      <enum>Qt::NoFocus</enum>
      </property>
      <property name="text">
       <string/>
