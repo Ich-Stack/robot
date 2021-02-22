@@ -300,6 +300,7 @@ MainWidget::MainWidget(QWidget *parent):
 
                 ui->textEdit_total->append("已完成!");
                 on_btn_run_clicked();                          //到达最终目标点后停止发送
+                finishedTask = true;
             }
         }
 
@@ -538,6 +539,7 @@ void MainWidget::on_btn_clearTask_clicked()
         path.clear();           //清空优化后路径
         _node.clear();          //清空节点向量
         isCreatePath = false;
+        finishedTask = false;
         //ui->label_UWB->isSetEnableArea = false;
         ui->lineEdit_nowTask->clear();
         ui->lineEdit_distant->clear();
@@ -933,13 +935,19 @@ void MainWidget::on_btn_clearPath_clicked()             //清空UWB地图和数�
         ui->label_UWB->initTimeout->start(3000);        //初始化3s
         ui->label_UWB->setInArea(false);
     }
-    ui->label_UWB->isCanUpdate = false;                 //清除自动生成的路径
+    finishedTask = false;
     isCreatePath = false;
+    ui->label_UWB->isCanUpdate = false;                 //清除自动生成的路径
     ui->label_UWB->clearNode();
 }
 
 void MainWidget::on_btn_run_clicked()
 {
+    if(finishedTask)
+    {
+        ui->textEdit_total->append("所有任务已经完成!");
+        return;
+    }
     if(m_spcomm->isOpen)
     {
 //        if(ui->label_UWB->getInArea() || m_isRun == false)
@@ -1127,6 +1135,7 @@ void MainWidget::dowork(int _contIndex)
 
             ui->textEdit_total->append("已经顺利完成所有任务！");
             on_btn_run_clicked();
+            finishedTask = true;
             return;
         }
 //    });

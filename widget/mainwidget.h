@@ -101,6 +101,7 @@ private:
     EDIT *edit;
     bool abnormal = false;
     bool m_isAddTaskCoor = false;
+    bool finishedTask = false;
     int contIndex = 0;
     int UWBindex = 0;
     int m_taskI = 0;
