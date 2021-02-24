@@ -59,22 +59,6 @@ MainWidget::MainWidget(QWidget *parent):
 
     connect(this, &MainWidget::createFinish, this, &MainWidget::slot_createFinish);
     connect(ui->label_UWB, &myLabel::isArrive, [=](){           //每到达一个人任务点生成下一个任务坐标路径
-//        QString str = QString("到达第%1个任务点").arg(doworkTimes+1);
-//        ui->textEdit_total->append(str);
-//        nowtaski++;
-//        ui->lineEdit_nowTask->setText(ui->label_UWB->UWBtask[find_taskName(path.code[nowtaski])].UWBTaskName);                 //显示当前任务名称
-//        dowork(contIndex);
-//        contIndex = ui->label_UWB->settest(path.route[nowtaski]);
-//        if(path.route[nowtaski] != 0)
-//        {
-//            ui->lineEdit_distant->setText(QString::number(GBuf[path.route[nowtaski-1]][path.route[nowtaski]]*dialog->getLength()/600/1000, 'f', 2));
-//        }
-//        else
-//        {
-//            return;
-//        }
-//        if(doworkTimes < ui->label_UWB->taskSize() - 1)
-//        {
             QString str = QString("到达第%1个任务点").arg(doworkTimes+1);
             ui->textEdit_total->append(str);
             nowtaski++;
@@ -89,43 +73,6 @@ MainWidget::MainWidget(QWidget *parent):
             {
                 return;
             }
-//        }
-//        else
-//        {
-//            ui->textEdit_total->append("已经顺利完成所有任务！");
-//            on_btn_run_clicked();
-//            return;
-//        }
-
-//        if(doworkTimes < ui->label_UWB->taskSize() - 1)
-//        {
-//        }
-//        else
-//        {
-//            ui->textEdit_total->append("已经顺利完成任务！");
-//            on_btn_run_clicked();
-//            return;
-//        }
-
-//        QByteArray buf = str.toLatin1();                //Qbytearray转char*
-//        char* ch = buf.data();
-//        m_spcomm->writeData(ch, str.length());
-        //ui->lineEdit_distant->setText(QString::number(GBuf[path.route[nowtaski]][path.route[nowtaski + 1]]*dialog->getLength()/600/1000, 'f', 2));
-//        if(!ui->label_UWB->work_finish)
-//        {
-//            if(route_index == _nodeNum - 1)
-//            {
-//                ui->label_UWB->get_Node(astar->GetPath(ui->label_UWB->end[path.route[route_index]], ui->label_UWB->start, false), -1, true);
-//                ui->label_UWB->work_finish = true;
-//            }
-//            else
-//            {
-//                ui->label_UWB->get_Node(astar->GetPath(ui->label_UWB->end[path.route[route_index]], ui->label_UWB->end[path.route[route_index+1]], false), path.route[route_index+1], true);
-//                route_index++;
-//            }
-//            ui->label_UWB->get_vector_node(_node);
-//            ui->label_UWB->update();
-//        }
     });
     connect(ui->btn_area, &QPushButton::clicked, [=](){
         if(ui->radioButton_UWB->isChecked())                                //选择任务模式放置可行区域
@@ -264,12 +211,13 @@ MainWidget::MainWidget(QWidget *parent):
 //            {
                 if(ui->label_UWB->node_index < _node.size())
                 {
-                    double x = _node.at(ui->label_UWB->node_index).x()*dialog->getLength()/600;
-                    double y = (600 - _node.at(ui->label_UWB->node_index).y())*dialog->getWidth()/600;
-                    QString str = QString("@M100 N1 %1 %2\r\n").arg(QString::number(x)).arg(QString::number(y));
-                    QByteArray buf = str.toLatin1();                //Qbytearray转char*
-                    char* ch = buf.data();
-                    m_spcomm->writeData(ch, str.length());
+                    ui->label_UWB->getCurrent(_node.at(ui->label_UWB->node_index).x(), _node.at(ui->label_UWB->node_index).y());
+//                    double x = _node.at(ui->label_UWB->node_index).x()*dialog->getLength()/600;
+//                    double y = (600 - _node.at(ui->label_UWB->node_index).y())*dialog->getWidth()/600;
+//                    QString str = QString("@M100 N1 %1 %2\r\n").arg(QString::number(x)).arg(QString::number(y));
+//                    QByteArray buf = str.toLatin1();                //Qbytearray转char*
+//                    char* ch = buf.data();
+//                    m_spcomm->writeData(ch, str.length());
                 }
                 else
                 {
@@ -395,7 +343,6 @@ MainWidget::MainWidget(QWidget *parent):
             str = QString("@M1 A1\r\n"); //机械爪抓
         }
         else
-
         {
             str = QString("@M1 a1\r\n"); //机械爪放
         }
@@ -409,16 +356,17 @@ MainWidget::~MainWidget()
 {
     delete ui;
     delete sa;
-    delete m_spcomm;
-    delete dialog;
-    delete sendDataTimer;
-    delete channel;
     delete astar;
+    delete dialog;
+    delete channel;
     delete contral;
-    delete timer_btnRun;
-    delete timer_speed;
-    delete timer_speedStop;
+    delete m_spcomm;
+    delete m_client;
     delete workTimer;
+    delete timer_speed;
+    delete timer_btnRun;
+    delete sendDataTimer;
+    delete timer_speedStop;
 }
 
 void MainWidget::receiveTaskCoordinate(QString Lng, QString Lat)   //接收任务坐标
@@ -540,7 +488,6 @@ void MainWidget::on_btn_clearTask_clicked()
         _node.clear();          //清空节点向量
         isCreatePath = false;
         finishedTask = false;
-        //ui->label_UWB->isSetEnableArea = false;
         ui->lineEdit_nowTask->clear();
         ui->lineEdit_distant->clear();
         edit->lineEdit_taskcode_clear();
@@ -549,7 +496,7 @@ void MainWidget::on_btn_clearTask_clicked()
         ui->lineEdit_pH->clear();
         ui->lineEdit_temperature->clear();
         ui->lineEdit_turbidity->clear();
-        ui->textEdit_total->clear();
+        //ui->textEdit_total->clear();
         ui->label_UWB->clearTaskModel();                           //清空任务名称，代号，要求 和 清空可行域数组
         while(UWBindex > 0)                                 //清空tablewidget
         {
@@ -613,16 +560,12 @@ void MainWidget::on_btn_createPath_clicked()        //生成路径按钮
 //        sa->Init_path(codeBuf);                                                                         //传输任务代号，使得路径与代号联立起来
 //        sa->getDis0(dis0);
 //        sa->getDis0_end(dis0_end);
-//        //std::thread t(TSP_Test, sa);
-//        //t.detach();
-//        //TSP_Test(sa);
 //        sa->TSP_SA();
 //        _nodeNum = sa->get_Node_Num();
 //        path = sa->get_Path(ui->label_UWB->UWBTaskIndex);                                               //获取模拟退火算法优化后的路径
 //        nowTask_index = find_taskName(path.code[0]);                                                    //通过任务代号获取当前正在执行的任务
 //        //------------------------------------------------------------------------------------------------------------------------------------------------
 //        //调试
-//        //qDebug() << '(' << ui->label_UWB->start.x << ", " << ui->label_UWB->start.y << ')';
 //        ui->label_UWB->get_Node(astar->GetPath(ui->label_UWB->start, ui->label_UWB->end[path.route[0]], false), path.route[0], true);      //A*寻路获取节点
 //        for(int i = 0; i < _nodeNum - 1; i++)
 //        {
@@ -639,7 +582,6 @@ void MainWidget::on_btn_createPath_clicked()        //生成路径按钮
 //        {
 //            text.append(QString(" -> %1").arg(path.code[i]));
 //        }
-//        //text.append("起点");
 //        ui->textEdit_total->append(text);
 //        contIndex = ui->label_UWB->settest(path.route[0]);                                                //当前坐标不作为第一个目标点
 //        ui->lineEdit_nowTask->setText(ui->label_UWB->UWBtask[nowTask_index].UWBTaskName);                 //显示当前任务名称
@@ -677,10 +619,6 @@ void MainWidget::magicTime()                                        //在Label�
         painter.drawLine(0, i*100, 600, i*100);
         painter.drawText(i*100+1, 598, QString("%1").arg(i*100));
         painter.drawText(0, i*100-2, QString("%1").arg((6 - i)*100));
-//        painter.drawLine(i*100,0,i*100,600);
-//        painter.drawLine(0, i*100, 600, i*100);
-//        painter.drawText(i*100, 15, QString("%1").arg(i*100));
-//        painter.drawText(0, i*100, QString("%1").arg(i*100));
     }
     painter.setPen(QPen(QColor(246, 184, 75), 7));                       //地图右上角标注
     painter.drawLine(480, 20, 520, 20);
@@ -776,23 +714,47 @@ void MainWidget::readcom()
 {
     static QString sumData;
     QString tempData = QString(m_spcomm->m_serialPort->readAll());         //读取串口数据
-    std::regex rx("W \\d+(\\.\\d+) \\d+(\\.\\d+) B");
-    std::smatch match;
-
     sumData.append(tempData);
-    std::string strData = sumData.toStdString();
-    if(std::regex_search(strData, match, rx))
+    //std::regex coorReg(R"(W \d+(\.\d+) \d+(\.\d+) B)");
+    //std::smatch match;
+    QRegularExpression coorReg(R"(W \d+(\.\d+) \d+(\.\d+) B)");
+    QRegularExpressionMatch coorMatch = coorReg.match(sumData);
+
+    //std::string strData = sumData.toStdString();
+    if(coorMatch.hasMatch())
     {
-        std::string matchData = match[0];
-        enstrData = QString::fromUtf8(matchData.data());
+        enstrData = coorMatch.captured();
         disposeData();
         sumData.clear();
     }
     else
     {
-        return;
+        QRegularExpression cmdReg(R"(@F [A-Za-z]?)");
+        QRegularExpressionMatch cmdMatch = cmdReg.match(sumData);
+        if(cmdMatch.hasMatch())
+        {
+            workTimer->stop();
+        }
+        else
+        {
+            return;
+        }
     }
+//    if(std::regex_search(strData, match, coorReg))
+//    {
+//        std::string matchData = match[0];
+//        enstrData = QString::fromUtf8(matchData.data());
+//        disposeData();
+//        sumData.clear();
+//    }
+//    else if(sumData.contains(R"(@F V)"))
+//    {
 
+//    }
+//    else if()
+//    {
+
+//    }
     //完成所有任务、配合下位机回调指令使用
 //    if(doworkTimes < ui->label_UWB->taskSize() - 1)
 //    {
@@ -1278,7 +1240,8 @@ void MainWidget::rebuildPath(APoint &curpoint)
     ui->label_UWB->get_Node(astar->GetPath(ui->label_UWB->end[path.route[_nodeNum-1]], ui->label_UWB->start, false), -1, true);
     ui->label_UWB->update();
     //------------------------------------------------------------------------------------------------------------------------------------------------
-    ui->label_UWB->get_vector_node(_node);
+    //ui->label_UWB->get_vector_node(_node);
+    _node = ui->label_UWB->get_vector_node();
     ui->label_UWB->isCanUpdate = true;
     ui->label_UWB->update();
     isCreatePath = true;
@@ -1352,17 +1315,16 @@ void createPath(MainWidget *e)
         {
             e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->end[e->path.route[i]], e->ui->label_UWB->end[e->path.route[i+1]], false), e->path.route[i+1], true);
         }
-        e->ui->label_UWB->update();
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        e->ui->label_UWB->get_vector_node(e->_node);
-        e->ui->label_UWB->isCanUpdate = true;
-        e->ui->label_UWB->update();
-        e->isCreatePath = true;
+        //e->ui->label_UWB->get_vector_node(e->_node);
+        //e->ui->label_UWB->isCanUpdate = true;
+        //e->ui->label_UWB->update();
+        //e->isCreatePath = true;
         for(int i = 0; i < e->_nodeNum; i++)                                                                 //text_total显示路径顺序
         {
             text.append(QString(" -> %1").arg(e->path.code[i]));
         }
-        e->contIndex = e->ui->label_UWB->settest(e->path.route[0]);
+        //e->contIndex = e->ui->label_UWB->settest(e->path.route[0]);
         e->ui->lineEdit_nowTask->setText(e->ui->label_UWB->UWBtask[nowTask_index].UWBTaskName);                 //显示当前任务名称
         e->ui->lineEdit_distant->setText(QString::number(dis0[e->path.route[0]]*e->dialog->getLength()/600/1000, 'f', 2));             //显示距离
         emit e->createFinish(text);
@@ -1373,9 +1335,15 @@ void createPath(MainWidget *e)
     }
 }
 
-void MainWidget::slot_createFinish(const QString text)
+void MainWidget::slot_createFinish(const QString text)                                                          //路径优化完成槽函数
 {
+    isCreatePath = true;
+    ui->label_UWB->isCanUpdate = true;
+    contIndex = ui->label_UWB->settest(path.route[0]);
+    //ui->label_UWB->get_vector_node(_node);
+    _node = ui->label_UWB->get_vector_node();
     ui->textEdit_total->append(text);
+    ui->label_UWB->update();
 }
 //void MainWidget::singShot(const size_t &sec)
 //{

@@ -66,7 +66,7 @@ bool Dialog::getIsClick()
     return isclick;
 }
 
-int Dialog::getRatio() const
+double Dialog::getRatio() const
 {
     return length / width;
 }

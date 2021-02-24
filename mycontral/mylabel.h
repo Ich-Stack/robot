@@ -64,20 +64,20 @@ public:
     void clearTaskModel();
     void getCurrent(double x, double y);                            //接受返回的坐标
     void setIsSetPoint(bool _isSetPoint);
-    void get_vector_node(std::vector<QPoint> &_vector_node);
+    std::vector<QPoint> get_vector_node();
     void get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd);
     bool pnpoly(int nvert, double *vertx, double *verty, int testx, int testy);           //PNPoly算法，判断点是否再多边形区域内
     int settest(int _test);
     size_t taskSize() const;
-    void setRatio(const int &_ratio);
+    void setRatio(const double &_ratio);
     void clearNode();
     void clearArea();
 
 private:
     int test = 0;
     int route = 0;
-    int ratio = 0;
     int _x = 0, _y = 0;
+    double ratio = 0;
     bool inArea = false;
     bool isChange = false;                                          //标志
     //bool isCanDraw = false;

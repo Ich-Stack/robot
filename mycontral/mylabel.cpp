@@ -327,7 +327,7 @@ void myLabel::clearTaskModel()                                   //清空enableA
 {
     route = 0;
     model = 0;                                              //不可编辑模式
-    node_index = 1;                                             //节点索引，0为起点，从第一个目标点开始
+    node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
     UWBTaskIndex = 0;
     node.clear();                                           //初始化节点向量
     node.push_back(QPoint());
@@ -474,14 +474,9 @@ void myLabel::clearArea()
 }
 
 //接口
-void myLabel::get_vector_node(std::vector<QPoint> &_vector_node)
+std::vector<QPoint> myLabel::get_vector_node()
 {
-    //std::vector<QPoint> temp = node;
-    //std::vector<QPoint>::iterator head = temp.begin();
-    //temp.pop_back();
-//    drawNode = node;
-//    drawNode.erase(drawNode.begin());
-    _vector_node = node;
+    return node;
 
 //模拟版本
 //    _vector_node = node;
@@ -570,7 +565,14 @@ size_t myLabel::taskSize() const
     return end.size();
 }
 
-void myLabel::setRatio(const int &_ratio)
+void myLabel::setRatio(const double &_ratio)
 {
-    this->ratio = _ratio;
+    if(_ratio)
+    {
+        this->ratio = _ratio;
+    }
+    else
+    {
+        ratio = 1;
+    }
 }

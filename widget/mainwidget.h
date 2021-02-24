@@ -16,6 +16,7 @@
 #include <QString>
 #include <QScreen>
 #include <QPixmap>
+#include <QRegExp>
 #include <QTimer>
 #include <thread>
 #include <QRect>
