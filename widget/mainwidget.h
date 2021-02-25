@@ -100,7 +100,8 @@ private:
 //----------------------------------------------------------------
     //任务路径部分
     EDIT *edit;
-    bool abnormal = false;
+    //bool abnormal = false;
+    bool stopCalc = false;
     bool m_isAddTaskCoor = false;
     bool finishedTask = false;
     int contIndex = 0;

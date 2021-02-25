@@ -3,14 +3,17 @@
 #include<QIntValidator>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QDebug>
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog)
 {
     ui->setupUi(this);
-    ui->lineEdit_long->setValidator(new QIntValidator(1, 999, this) );          //基站的输入窗口，输入限制
-    ui->lineEdit_wide->setValidator(new QIntValidator(1, 999, this) );
+
+    QRegularExpressionValidator *validator = new QRegularExpressionValidator(QRegularExpression("([1-9]){1,3}"));
+    ui->lineEdit_long->setValidator(validator);          //基站的输入窗口，输入限制
+    ui->lineEdit_wide->setValidator(validator);
     ui->btn_ok->setNorAndPre(":/picture/yes.png");
     ui->btn_cancel->setNorAndPre(":/picture/no.png");
     this->setWindowFlags(Qt::FramelessWindowHint);

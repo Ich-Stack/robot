@@ -22,6 +22,7 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     initTimeout = new QTimer();
     btn_areaClear = new QPushButton();
     start = APoint(30, 30);
+    //start = QPoint(30, 30);
     node.push_back(QPoint());                                         //初始化使用
 
     btn_areaClear->setStyleSheet("color: rgb(246, 184, 75); font: 10pt 'OPPOSans'; border-radius:5px");
@@ -198,7 +199,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
     {
         if(isCreatePath)
         {
-            QPoint tempStart = start*10;
+            QPoint tempStart = start.toQPoint()*10;
             painter.setPen(Qt::red);
             painter.setBrush(Qt::red);
             painter.drawEllipse(tempStart, 9, 9);                                                       //记录起点
@@ -260,11 +261,8 @@ void myLabel::getCurrent(double x, double y)                      //获取mainwi
     {
         double end_dis = pow(x - end.at(test).x*10, 2) + pow((y - end.at(test).y*10)/ratio, 2);
         double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
-        //qDebug() << "the dis : " << node_dis << ", " << node.at(node_index).x() << ", " << node.at(node_index).y() << ", " << x << ", " << y;
         if(node_dis < 3000)//3000           //到达节点发送下一个节点
         {
-            //qDebug() << "node point : " << node[node_index].x << ',' << node[node_index].y;
-            //qDebug() << "distance : " << sqrt(pow(node[node_index].x - x, 2) + pow(node[node_index].y - y, 2));
             if(node_index < node.size() - 1)
             {
                 node_index++;
@@ -273,7 +271,6 @@ void myLabel::getCurrent(double x, double y)                      //获取mainwi
             {
                 //vecRemove(end.at(test));
                 emit isArrive();                                                                        //触发信号，产生前往下一个任务坐标的路径节点
-                //qDebug() << "end point : " << end.at(test).x << ',' << end.at(test).y;
                 //UWBTaskIndex--;
             }
         }
@@ -357,31 +354,34 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd
     node.push_back(nodeParent*10);
     route = _route;
     nodeParent *= 10;
-    for(auto &p : _node)
+    if(_node.size() > 1)                                                                            //节点数大于1做平滑优化
     {
-        currentPoint = p*10;
-        if(intersect(nodeParent, currentPoint, areaPoint))
+        for(auto &p : _node)
         {
-//            node_buf.setX(laterPoint.x()*10);                                                               //放大10倍
-//            node_buf.setY(laterPoint.y()*10);
-//            node.push_back(node_buf);
-            node.push_back(laterPoint);
-            nodeParent = laterPoint;
-            //qDebug() << "is intersect ...";
+            currentPoint = p*10;
+            if(intersect(nodeParent, currentPoint, areaPoint))
+            {
+    //            node_buf.setX(laterPoint.x()*10);                                                               //放大10倍
+    //            node_buf.setY(laterPoint.y()*10);
+    //            node.push_back(node_buf);
+                node.push_back(laterPoint);
+                nodeParent = laterPoint;
+                //qDebug() << "is intersect ...";
+            }
+            else
+            {
+                laterPoint = currentPoint;
+                //qDebug() << "no intersect ...";
+                continue;
+            }
+            //实际使用版本
+    //--------------------------------------------------------------------------
+    //        //模拟版本
+    //        node_buf.setX(p.x()*10);                                                               //放大10倍
+    //        node_buf.setY(p.y()*10);
+    //        node.push_back(node_buf);
+    //        qDebug() << "the nodebuf : " << node_buf.x() << ", " << node_buf.y();
         }
-        else
-        {
-            laterPoint = currentPoint;
-            //qDebug() << "no intersect ...";
-            continue;
-        }
-        //实际使用版本
-//--------------------------------------------------------------------------
-//        //模拟版本
-//        node_buf.setX(p.x()*10);                                                               //放大10倍
-//        node_buf.setY(p.y()*10);
-//        node.push_back(node_buf);
-//        qDebug() << "the nodebuf : " << node_buf.x() << ", " << node_buf.y();
     }
     if(isAddEnd && _route == -1)                                                               //完成最后一个任务，返回起点回收设备
     {
@@ -488,8 +488,15 @@ std::vector<QPoint> myLabel::get_vector_node()
 
 void myLabel::clearNode()
 {
-    node.clear();
+    route = 0;
+    node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
+    node.clear();                                           //初始化节点向量
     node.push_back(QPoint());
+    work_finish = false;
+    isCreatePath = false;
+
+//    node.clear();
+//    node.push_back(QPoint());
 }
 
 void myLabel::setInArea(bool _inArea)

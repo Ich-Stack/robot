@@ -46,6 +46,7 @@ public:
     bool work_finish = false;
     bool isClickLeftButton = false;
     std::vector<std::vector<bool>> maze;
+    //QPoint start;
     APoint start;
     //APoint end[60];
     std::vector<APoint> end;

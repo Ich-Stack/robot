@@ -76,79 +76,101 @@ APoint* ASTAR::getLeastFpoint()
 
 APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner)
 {
-    openList.push_back(new APoint(startPoint.x, startPoint.y)); //置入起点,拷贝开辟一个节点，内外隔离
-    while (!openList.empty())
+    if(startPoint == endPoint)                                      //起点与终点相同，返回NULL（原代码bug）
     {
-        auto curPoint = getLeastFpoint(); //找到F值最小的点
-        openList.remove(curPoint); //从开启列表中删除
-        closeList.push_back(curPoint); //放到关闭列表
-        //找到当前周围八个格中可以通过的格子
-        auto surroundPoints = getSurroundPoints(curPoint, isIgnoreCorner);
-        for (auto& target : surroundPoints)
+        APoint* pointList = &startPoint;
+        pointList->parent = NULL;
+        return pointList;
+    }
+    else
+    {
+        openList.push_back(new APoint(startPoint.x, startPoint.y)); //置入起点,拷贝开辟一个节点，内外隔离
+        while (!openList.empty())
         {
-            //对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
-            if (!isInList(openList, target))
+            auto curPoint = getLeastFpoint(); //找到F值最小的点
+            openList.remove(curPoint); //从开启列表中删除
+            closeList.push_back(curPoint); //放到关闭列表
+            //找到当前周围八个格中可以通过的格子
+            auto surroundPoints = getSurroundPoints(curPoint, isIgnoreCorner);
+            for (auto& target : surroundPoints)
             {
-                target->parent = curPoint;
-
-                target->G = calcG(curPoint, target);
-                target->H = calcH(target, &endPoint);
-                target->F = calcF(target);
-
-                openList.push_back(target);
-            }
-            //对某一个格子，它在开启列表中，计算G值, 如果比原来的大, 就什么都不做, 否则设置它的父节点为当前点,并更新G和F
-            else
-            {
-                int tempG = calcG(curPoint, target);
-                if (tempG < target->G)
+                //对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
+                if (!isInList(openList, target))
                 {
                     target->parent = curPoint;
 
-                    target->G = tempG;
+                    target->G = calcG(curPoint, target);
+                    target->H = calcH(target, &endPoint);
                     target->F = calcF(target);
+
+                    openList.push_back(target);
                 }
+                //对某一个格子，它在开启列表中，计算G值, 如果比原来的大, 就什么都不做, 否则设置它的父节点为当前点,并更新G和F
+                else
+                {
+                    int tempG = calcG(curPoint, target);
+                    if (tempG < target->G)
+                    {
+                        target->parent = curPoint;
+
+                        target->G = tempG;
+                        target->F = calcF(target);
+                    }
+                }
+                APoint* resPoint = isInList(openList, &endPoint);
+                if (resPoint)
+                    return resPoint; //返回列表里的节点指针，不要用原来传入的endpoint指针，因为发生了深拷贝
             }
-            APoint* resPoint = isInList(openList, &endPoint);
-            if (resPoint)
-                return resPoint; //返回列表里的节点指针，不要用原来传入的endpoint指针，因为发生了深拷贝
         }
+        return NULL;
     }
-    return NULL;
 }
 
 std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIgnoreCorner)
 {
-    //qDebug() << "start point : " << '(' << startPoint.x << ", " << startPoint.y << ')';
     APoint* result = findPath(startPoint, endPoint, isIgnoreCorner);
-    APoint* tempPoint = result;                                                             //保存斜率改变时的节点
-    APoint* buf = NULL;                                                                     //记录方向改变时的上一个点，防止与可行区域相交
-    double slopeParent = 0;                                                                    //保存斜率改变时的斜率
+    if (result == NULL)                                                                             //道路封闭，寻找不到路
+    {
+        std::list<QPoint> none;
+        openList.clear();
+        closeList.clear();
+        return none;
+    }
+    APoint* tempPoint = result;                                                              //保存斜率改变时的节点
+    APoint* buf = NULL;                                                                      //记录方向改变时的上一个点，防止与可行区域相交
+    double slopeParent = 0;                                                                  //保存斜率改变时的斜率
     std::list<QPoint> path;//(1, result->operator QPoint());
     //返回路径，如果没找到路径，返回空链表
-    path.push_front(result->operator QPoint());                                                                //加入第一个节点，因为计算从第二个节点开始
-    slopeParent = calcSlope(*result, *(result->parent));                                    //计算第一第二个节点的斜率，作为初始斜率
+    path.push_front(result->toQPoint());                                                     //加入第一个节点，因为计算从第二个节点开始
+    if(result->parent == NULL)                                                               //起点与终点相同，返回当前点
+    {
+        path.push_front(result->toQPoint());                                                 //避免直接发送第二个坐标点
+        openList.clear();
+        closeList.clear();
+        return path;
+    }
+    slopeParent = calcSlope(*result, *(result->parent));                                     //计算第一第二个节点的斜率，作为初始斜率
 //    while(result)
 //    {
     while (result->parent)
     {
         buf = result;
-        result = result->parent;                                                                    //指向下一个节点，遍历所有节点
-        const double slope = calcSlope(*tempPoint, *result);                                                 //计算上次斜率改变的节点与当前遍历节点的斜率
-        if(abs(slope - slopeParent) < 1e-6)                                                                    //比较斜率，判断是否在一条直线上，如果是则判断下一个节点，否则奖当前节点加入列表
+        result = result->parent;                                                             //指向下一个节点，遍历所有节点
+        const double slope = calcSlope(*tempPoint, *result);                                 //计算上次斜率改变的节点与当前遍历节点的斜率
+        if(abs(slope - slopeParent) < 1e-6)                                                  //比较斜率，判断是否在一条直线上，如果是则判断下一个节点，否则奖当前节点加入列表
         {
             continue;
         }
         else
         {
-            path.push_front(buf->operator QPoint());
-            tempPoint = result;                                                                     //斜率改变时，记录当前斜率
-            slopeParent = slope;                                                                    //斜率改变时，记录当前节点
+            path.push_front(buf->toQPoint());
+            tempPoint = result;                                                              //斜率改变时，记录当前斜率
+            slopeParent = slope;                                                             //斜率改变时，记录当前节点
         }
         //path.push_front(result->operator QPoint());
         //result = result->parent;
     }
-    path.push_front(result->operator QPoint());                                                                        //将最后一个节点加入列表中
+    path.push_front(result->toQPoint());                                                     //将最后一个节点加入列表中
     // 清空临时开闭列表，防止重复执行GetPath导致结果异常
     openList.clear();
     closeList.clear();
