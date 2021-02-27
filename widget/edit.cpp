@@ -1,7 +1,6 @@
 ﻿#include "edit.h"
 #include "ui_edit.h"
 #include <QPainter>
-#include <QDebug>
 
 EDIT::EDIT(QWidget *parent) :
     QWidget(parent),

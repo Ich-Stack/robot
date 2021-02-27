@@ -4,14 +4,18 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QtSerialPort>
 #include <QTableWidgetItem>
+#include <QJsonParseError>
 #include <QWebEngineView>
+#include <QJsonDocument>
 #include <QApplication>
 #include <QMediaPlayer>
 #include <QWebChannel>
 #include <QMessageBox>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
 #include <QWebSocket>
 #include <iostream>
-#include <stdlib.h>
 #include <QWidget>
 #include <QString>
 #include <QScreen>
@@ -31,6 +35,7 @@
 #include "contral.h"
 #include "dialog.h"
 #include "edit.h"
+#include "choose.h"
 
 struct taskNameAndCode{
     int code;
@@ -100,8 +105,9 @@ private:
 //----------------------------------------------------------------
     //任务路径部分
     EDIT *edit;
+    CHOOSE *choose;
     //bool abnormal = false;
-    bool stopCalc = false;
+    //bool stopCalc = false;
     bool m_isAddTaskCoor = false;
     bool finishedTask = false;
     int contIndex = 0;
@@ -109,12 +115,14 @@ private:
     int m_taskI = 0;
     int m_taskNumber = 0;
     QTimer *workTimer;
-    taskNameAndCode task[60];
+    taskNameAndCode task[60];                       //GPS
     QString m_taskCode = 0;
     QString m_taskCoorLng = 0, m_taskCoorLat = 0;
     QString m_taskName = 0;
     QString m_taskLevel = 0;
     void dowork(int _contIndex);
+    void slot_createAuto();
+    void slot_createSet();
 //----------------------------------------------------------------
     //手动设置路径部分
     double m_setPathPointLng[50];                       //手动路径点经度数组

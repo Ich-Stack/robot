@@ -73,6 +73,8 @@ public:
     void setRatio(const double &_ratio);
     void clearNode();
     void clearArea();
+    void setStopCalc(const bool &statu);
+    bool getStopCalc() const;
 
 private:
     int test = 0;
@@ -80,6 +82,7 @@ private:
     int _x = 0, _y = 0;
     double ratio = 0;
     bool inArea = false;
+    bool stopCalc = true;
     bool isChange = false;                                          //标志
     //bool isCanDraw = false;
     bool isCreatePath = false;
@@ -99,6 +102,7 @@ private:
     bool pointAndLine(const QPoint &a, const QPoint &b, const QPoint &c, const QPoint &d);
     bool intersect(const QPoint &a, const QPoint &b, const vector<QPoint> &vecAreaPoint);
     void vecRemove(const APoint &rpoint);
+    void initMaze();
 
 signals:
     void isAddPoint();

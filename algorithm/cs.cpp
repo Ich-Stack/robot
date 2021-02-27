@@ -3,7 +3,8 @@
 #endif
 #include "cs.h"
 //#include<iostream>
-#include<QThread>
+//#include<QThread>
+#include <QDebug>
 
 const int ITERATIONS = 200;                 //迭代次数
 const double ALPHA = 0.98;					//退火速度
@@ -64,7 +65,10 @@ void CS::TSP_SA()
         }
 
         if (cur.dis < _path.dis)                                            //接受更优的路径
+        {
             _path = cur;
+            qDebug() << "dis : " << cur.dis;
+        }
 
         t *= ALPHA;                                                         //退火速度
         if (!bChange)                                                       //两次最优路径相同或者到达迭代次数退出循环
@@ -74,11 +78,11 @@ void CS::TSP_SA()
 
         if (times == 2)
         {
-            emit finishTSP();                                               //迭代次数完成或者达到特定条件触发信号并退出循环
+            //emit finishTSP();                                               //迭代次数完成或者达到特定条件触发信号并退出循环
             break;
         }
     }
-    emit finishTSP();
+    //emit finishTSP();
 }
 PATH CS::generate(PATH p)
 {
@@ -107,7 +111,7 @@ PATH CS::generate(PATH p)
     }
     gen.dis += _dis0[gen.route[0]];                             //任务间最短路径加上设备当前坐标与第一个目标点的距离
     gen.dis_alone[0] = _dis0[gen.route[0]];
-    gen.dis += _dis0_end[gen.route[nodeNum-1]];                 //加上最后一个任务坐标点回到起点的距离
+    //gen.dis += _dis0_end[gen.route[nodeNum-1]];                 //加上最后一个任务坐标点回到起点的距离
 
     return gen;
 }
@@ -236,13 +240,13 @@ void CS::getDis0(int (&dis0)[MAX_CITY_NUM])
     }
 }
 
-void CS::getDis0_end(int (&dis0_end)[MAX_CITY_NUM])
-{
-    for(int i = 0; i < MAX_CITY_NUM; i++)
-    {
-        _dis0_end[i] = dis0_end[i];
-    }
-}
+//void CS::getDis0_end(int (&dis0_end)[MAX_CITY_NUM])
+//{
+//    for(int i = 0; i < MAX_CITY_NUM; i++)
+//    {
+//        _dis0_end[i] = dis0_end[i];
+//    }
+//}
 
 void CS::setNum(int _num)
 {

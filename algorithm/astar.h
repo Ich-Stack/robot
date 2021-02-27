@@ -23,13 +23,9 @@ struct APoint
     APoint(int _x, int _y, double _omega, int _taskContantIndex) :x(_x), y(_y), omega(_omega), taskContantIndex(_taskContantIndex), F(0), G(0), H(0), parent(NULL){}//变量初始化
     APoint(int _x, int _y) :x(_x), y(_y), omega(1), taskContantIndex(0), F(0), G(0), H(0), parent(NULL){}//变量初始化
     APoint():x(0), y(0), F(0), G(0), H(0), omega(1), taskContantIndex(0), parent(NULL){}
-    //explicit operator QPoint(){ return QPoint(x, y); }
     bool operator ==(const APoint &rp) const
     {
         return !((x ^ rp.x) || (y ^ rp.y));
-//        bool result;
-//        result = this->x == rp.x && this->y == rp.y;
-//        return result;
     }
     QPoint toQPoint() const
     {

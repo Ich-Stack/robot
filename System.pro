@@ -39,6 +39,7 @@ SOURCES += \
     widget/init.cpp \
     widget/mainwidget.cpp \
     widget/videowidget.cpp \
+    widget/choose.cpp \
 
 HEADERS += \
     algorithm/astar.h \
@@ -56,8 +57,10 @@ HEADERS += \
     widget/init.h \
     widget/mainwidget.h \
     widget/videowidget.h \
+    widget/choose.h \
 
 FORMS += \
+    choose.ui \
     contral.ui \
     dialog.ui \
     edit.ui \

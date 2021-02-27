@@ -1,9 +1,9 @@
 ﻿#ifndef EDIT_H
 #define EDIT_H
 
-#include <QWidget>
+#include <QPushButton>
 #include <QPaintEvent>
-#include <QPoint>
+#include <QWidget>
 
 namespace Ui {
 class EDIT;

@@ -21,7 +21,7 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     dialog = new Dialog();
     initTimeout = new QTimer();
     btn_areaClear = new QPushButton();
-    start = APoint(30, 30);
+    start = APoint(35, 25);
     //start = QPoint(30, 30);
     node.push_back(QPoint());                                         //初始化使用
 
@@ -43,46 +43,48 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     });
     connect(btn_areaClear, &QPushButton::clicked, this, &myLabel::clearArea);
     //this->installEventFilter(this);                                 //安装事件过滤器
+
+    enableArea.x[0] = 5;
+    enableArea.x[1] = 5;
+    enableArea.x[2] = 236;
+    enableArea.x[3] = 236;
+    enableArea.x[4] = 354;
+    enableArea.x[5] = 480;
+    enableArea.x[6] = 480;
+    enableArea.x[7] = 353;
+    enableArea.x[8] = 253;
+    enableArea.x[9] = 253;
+    enableArea.y[0] = 4;
+    enableArea.y[1] = 593;
+    enableArea.y[2] = 593;
+    enableArea.y[3] = 443;
+    enableArea.y[4] = 320;
+    enableArea.y[5] = 320;
+    enableArea.y[6] = 185;
+    enableArea.y[7] = 185;
+    enableArea.y[8] = 25;
+    enableArea.y[9] = 4;
+    areaPoint.push_back(QPoint(5, 4));
+    areaPoint.push_back(QPoint(5, 593));
+    areaPoint.push_back(QPoint(236, 593));
+    areaPoint.push_back(QPoint(236, 443));
+    areaPoint.push_back(QPoint(354, 320));
+    areaPoint.push_back(QPoint(480, 320));
+    areaPoint.push_back(QPoint(480, 185));
+    areaPoint.push_back(QPoint(353, 185));
+    areaPoint.push_back(QPoint(253, 25));
+    areaPoint.push_back(QPoint(253, 4));
+    model = 1;
+    enableArea.index = 10;
+    isSetEnableArea = true;
+    initMaze();
 }
 
 void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠标事件
 {
     if(ev->button() == Qt::RightButton && isEditArea)               //鼠标右键表示完成放置可行域
     {
-        if(1 == model)
-        {
-            model = 0;
-            timer->start(500);
-            isSetEnableArea = true;
-            isEditArea = false;
-            setMouseTracking(false);
-            std::vector<std::vector<bool>> mazebuf(max_map_num);              //定义并且初始化vector
-            //resize mazebuf的大小，定义二维数组
-            for(int i=0;i<max_map_num;i++)
-            {
-                mazebuf[i].resize(max_map_num);
-            }
-            //遍历赋值
-            for(int i = 0; i < (int)mazebuf.size(); i++)
-            {
-               for (int j = 0; j < (int)mazebuf[0].size();j++)
-                {
-                    mazebuf[i][j] = true;
-                }
-            }
-            for(int i = 0; i < max_map_num; i++)
-            {
-                for(int j = 0; j < max_map_num; j++)
-                {
-                    if(pnpoly(enableArea.index, enableArea.x, enableArea.y, i*10, j*10))
-                    {
-                        mazebuf[j][i] = false;
-                    }
-                }
-            }
-            this->maze = mazebuf;
-            update();                                                   //更新
-        }
+        initMaze();
     }
     else if(ev->button() == Qt::LeftButton)
     {
@@ -94,6 +96,7 @@ void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠�
 //            areaPoint[enableArea.index].setX(ev->x());
 //            areaPoint[enableArea.index].setY(ev->y());
             enableArea.index++;
+//            qDebug() << '(' << ev->x() << ", " << ev->y() << ')';
         }
         else if(2 == model)                                                       //手动设置路径
         {
@@ -203,7 +206,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
             painter.setPen(Qt::red);
             painter.setBrush(Qt::red);
             painter.drawEllipse(tempStart, 9, 9);                                                       //记录起点
-            painter.drawText(tempStart.x() + 10, tempStart.y() - 10, "起点");                                     //偏移100px
+            painter.drawText(tempStart.x() + 10, tempStart.y() - 10, "起点");                            //偏移100px
         }
         for(int i = 0; i < UWBTaskIndex; i++)
         {
@@ -257,7 +260,11 @@ void myLabel::getCurrent(double x, double y)                      //获取mainwi
         pointbuf.x[0] = _x;                                        //记录开机的坐标
         pointbuf.y[0] = _y;
     }
-    if(taskModel && isSetPoint && isCreatePath)
+    if(stopCalc)
+    {
+        return;
+    }
+    if(isCreatePath)//taskModel && isSetPoint &&
     {
         double end_dis = pow(x - end.at(test).x*10, 2) + pow((y - end.at(test).y*10)/ratio, 2);
         double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
@@ -473,7 +480,54 @@ void myLabel::clearArea()
     update();
 }
 
+void myLabel::initMaze()
+{
+    if(1 == model)
+    {
+        model = 0;
+        timer->start(500);
+        isSetEnableArea = true;
+        isEditArea = false;
+        setMouseTracking(false);
+        std::vector<std::vector<bool>> mazebuf(max_map_num);              //定义并且初始化vector
+        //resize mazebuf的大小，定义二维数组
+        for(int i=0;i<max_map_num;i++)
+        {
+            mazebuf[i].resize(max_map_num);
+        }
+        //遍历赋值
+        for(int i = 0; i < (int)mazebuf.size(); i++)
+        {
+           for (int j = 0; j < (int)mazebuf[0].size();j++)
+            {
+                mazebuf[i][j] = true;
+            }
+        }
+        for(int i = 0; i < max_map_num; i++)
+        {
+            for(int j = 0; j < max_map_num; j++)
+            {
+                if(pnpoly(enableArea.index, enableArea.x, enableArea.y, i*10, j*10))
+                {
+                    mazebuf[j][i] = false;
+                }
+            }
+        }
+        this->maze = mazebuf;
+        update();                                                   //更新
+    }
+}
 //接口
+void myLabel::setStopCalc(const bool &statu)
+{
+    stopCalc = statu;
+}
+
+bool myLabel::getStopCalc() const
+{
+    return stopCalc;
+}
+
 std::vector<QPoint> myLabel::get_vector_node()
 {
     return node;
