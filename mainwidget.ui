@@ -208,9 +208,9 @@ border-radius:10px;</string>
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-radius:10px;
+       <string notr="true">QLabel{border-radius:10px;
 background-image: url(:/picture/map.png);
-border:1px solid gray;</string>
+border:1px solid gray;}</string>
       </property>
       <property name="text">
        <string/>
@@ -229,8 +229,7 @@ border:1px solid gray;</string>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">
-</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>

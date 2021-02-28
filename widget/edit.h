@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QPaintEvent>
 #include <QWidget>
+#include "mycontral/mybtn.h"
 
 namespace Ui {
 class EDIT;
@@ -25,6 +26,8 @@ public:
     void lineEdit_taskname_clear();
     int cmb_level_index();
     int cmb_work_index();
+    MYBTN *btn_load;
+    MYBTN *btn_save;
 
 signals:
     void btn_addcoor();

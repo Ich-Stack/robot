@@ -9,14 +9,18 @@ CHOOSE::CHOOSE(QWidget *parent) :
 
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
+    this->setStyleSheet("QPushButton{border:0px}");
 
     ui->widget->installEventFilter(this);
-    btn_auto = new QPushButton(ui->frame);
-    btn_set = new QPushButton(ui->frame);
+    btn_auto = new MYBTN(ui->frame);
+    btn_set = new MYBTN(ui->frame);
     btn_auto->move(10, 50);
     btn_auto->resize(70, 45);
     btn_set->move(100, 50);
     btn_set->resize(70, 45);
+    btn_set->setNorAndPre(":/picture/btn_set.png");
+    btn_auto->setNorAndPre(":/picture/btn_auto.png");
+    ui->btn_close->setNorAndPre(":/picture/btn_close.png");
 }
 
 CHOOSE::~CHOOSE()
@@ -67,4 +71,9 @@ void CHOOSE::paintEvent(QPaintEvent *)
         painter.setBrush(Qt::transparent);
         painter.drawRoundedRect(i,i,this->width()-i*2, this->height()-i*2,15,15);
     }
+}
+
+void CHOOSE::on_btn_close_clicked()
+{
+    this->close();
 }

@@ -46,9 +46,29 @@
     <property name="styleSheet">
      <string notr="true">background-color: rgb(51, 51, 51);</string>
     </property>
+    <widget class="MYBTN" name="btn_close">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>0</y>
+       <width>30</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MYBTN</class>
+   <extends>QPushButton</extends>
+   <header location="global">mycontral/mybtn.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

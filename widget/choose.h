@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QPushButton>
+#include "mycontral/mybtn.h"
 
 namespace Ui {
 class CHOOSE;
@@ -18,8 +19,11 @@ public:
     explicit CHOOSE(QWidget *parent = nullptr);
     ~CHOOSE();
 
-    QPushButton *btn_auto;
-    QPushButton *btn_set;
+    MYBTN *btn_auto;
+    MYBTN *btn_set;
+
+private slots:
+    void on_btn_close_clicked();
 
 private:
     Ui::CHOOSE *ui;

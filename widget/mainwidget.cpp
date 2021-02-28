@@ -4,7 +4,6 @@
 
 #include "mainwidget.h"
 #include "ui_mainwidget.h"
-#include <regex>
 
 double _x = 0;
 double _y = 0;
@@ -58,8 +57,14 @@ MainWidget::MainWidget(QWidget *parent):
     this->ui->map_widget->page()->load(QUrl(pwd));
     this->ui->map_widget->show();
 
-    connect(choose->btn_auto, &QPushButton::clicked, this, &MainWidget::slot_createAuto);
+    connect(choose->btn_auto, &QPushButton::clicked, this, &MainWidget::slot_createAuto);       //自动/手动路径连接
     connect(choose->btn_set, &QPushButton::clicked, this, &MainWidget::slot_createSet);
+    connect(edit->btn_load, &QPushButton::clicked, ui->label_UWB, &myLabel::slot_waringShow);         //label读写数据
+    connect(edit->btn_save, &QPushButton::clicked, ui->label_UWB, &myLabel::slot_save);
+    connect(ui->label_UWB, &myLabel::signal_load, this, &MainWidget::slot_load);               //保存/导入任务连接
+    connect(ui->label_UWB, &myLabel::signal_textAppend, this, &MainWidget::slot_textAppend);    //mylabel在texttotal添加内容
+    connect(ui->label_UWB, &myLabel::signal_clearTask, this, &MainWidget::on_btn_clearTask_clicked);    //label清除任务数据
+
     connect(this, &MainWidget::createFinish, this, &MainWidget::slot_createFinish);
     connect(ui->label_UWB, &myLabel::isArrive, [=](){           //每到达一个人任务点生成下一个任务坐标路径
             QString str = QString("到达第%1个任务点").arg(doworkTimes+1);
@@ -100,7 +105,7 @@ MainWidget::MainWidget(QWidget *parent):
         ui->label_UWB->UWBtask[UWBindex].UWBTaskName = edit->LineEdit_taskname_text();                 //获取任务名称
         ui->label_UWB->UWBtask[UWBindex].UWBTaskCode = edit->LineEdit_taskcode_text().toInt();         //获取任务代号
 
-        this->codeBuf[UWBindex] = edit->LineEdit_taskcode_text().toInt();
+        codeBuf[UWBindex] = edit->LineEdit_taskcode_text().toInt();
         ui->label_UWB->model = 4;
         m_isAddTaskCoor = true;
         ui->textEdit_total->append("成功放置任务坐标点!");
@@ -540,8 +545,8 @@ void MainWidget::receiveSetPathPoint(QString lng ,QString lat)      //接受网�
 
 void MainWidget::receiveShipCurrentPoint(QString lng, QString lat)
 {
-    this->ui->lineEdit_currentLng_x->setText(lng.mid(0,10));
-    this->ui->lineEdit_currentLat_y->setText(lat.mid(0,9));
+    ui->lineEdit_currentLng_x->setText(lng.mid(0,10));
+    ui->lineEdit_currentLat_y->setText(lat.mid(0,9));
 //    strLatStart = y;
 //    strLngStart = x;
 //    if(calculate)
@@ -1319,17 +1324,49 @@ void MainWidget::area_GPS()
 
 void MainWidget::slot_createAuto()
 {
-    choose->close();
-    std::thread t(createPath, this);            //另外线程执行生成路径算法                                                                    //多线程，防止运行算法时软件卡顿
+    std::thread t(createPath, this, true);            //另外线程执行生成路径算法                                                                    //多线程，防止运行算法时软件卡顿
     t.detach();
+    choose->close();
 }
 
 void MainWidget::slot_createSet()
 {
+    std::thread t(createPath, this, false);            //另外线程执行生成路径算法                                                                    //多线程，防止运行算法时软件卡顿
+    t.detach();
     choose->close();
 }
 
-void createPath(MainWidget *e)
+void MainWidget::slot_load()
+{
+    m_isAddTaskCoor = false;
+    m_taskI = ui->label_UWB->UWBTaskIndex;
+    UWBindex = ui->label_UWB->UWBTaskIndex;
+    ui->tableWidget_info->setRowCount(UWBindex);
+    for(int i = 0; i < UWBindex; i++)
+    {
+        int index = 0;
+        codeBuf[i] = ui->label_UWB->UWBtask[i].UWBTaskCode;
+        ui->tableWidget_info->setItem(i, index++, new QTableWidgetItem(ui->label_UWB->UWBtask[i].UWBTaskLevel));
+        ui->tableWidget_info->setItem(i, index++, new QTableWidgetItem(QString("%1").arg(ui->label_UWB->UWBtask[i].UWBTaskCode)));
+        ui->tableWidget_info->setItem(i, index++, new QTableWidgetItem(QString("(%1, %2)").arg(ui->label_UWB->UWBtask[i].x).arg(ui->label_UWB->UWBtask[i].y)));
+        ui->tableWidget_info->setItem(i, index++, new QTableWidgetItem(ui->label_UWB->UWBtask[i].UWBTaskName));
+        ui->tableWidget_info->item(i, 0)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);  //设置文本居中
+        ui->tableWidget_info->item(i, 1)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+        ui->tableWidget_info->item(i, 2)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+        qDebug() << ui->label_UWB->UWBtask[i].UWBTaskLevel;
+        if(ui->label_UWB->UWBtask[i].UWBTaskLevel == "紧急")   //紧急为红色
+        {
+            ui->tableWidget_info->item(i, 0)->setTextColor(QColor(Qt::red));
+        }
+        else if(ui->label_UWB->UWBtask[i].UWBTaskLevel == "重要")  //重要为黄色
+        {
+            ui->tableWidget_info->item(i, 0)->setTextColor(QColor(Qt::darkYellow));
+        }
+    }
+    ui->textEdit_total->append("导入成功!");
+}
+
+void createPath(MainWidget *e, const bool &aut)
 {
     if(e->ui->label_UWB->isSetEnableArea && e->ui->label_UWB->UWBTaskIndex != 0 && !e->isCreatePath)
     {
@@ -1337,35 +1374,39 @@ void createPath(MainWidget *e)
         int _tempDis0 = 0;
         int nowTask_index;
         int dis0[MAX_CITY_NUM];
+        int uwbTaskIndex = e->ui->label_UWB->UWBTaskIndex;
         //int dis0_end[MAX_CITY_NUM];
         QString text("路径：起点");
 
         memset(dis0, 0, sizeof(int)*MAX_CITY_NUM);
         e->astar->InitAstar(e->ui->label_UWB->maze);
-        for(int i = 0; i < e->ui->label_UWB->UWBTaskIndex; i++)
+        for(int i = 0; i < uwbTaskIndex; i++)
         {
-            for(int j = i; j < e->ui->label_UWB->UWBTaskIndex; j++)
+            for(int j = i; j < uwbTaskIndex; j++)
             {
                 _tempG = e->astar->getG(e->ui->label_UWB->end[i], e->ui->label_UWB->end[j], false);               //A*寻路获取距离G
                 GBuf[i][j] = (int)(_tempG * pow(1.002, _tempG) * e->ui->label_UWB->end[j].omega);
                 GBuf[j][i] = GBuf[i][j];                                                                //对角线赋值，避免两点间寻路得到的路径不相等，且减少寻路次数，增加速度
             }
         }
-        for(int i = 0; i < e->ui->label_UWB->UWBTaskIndex; i++)                                            //获取初始坐标点到每个任务点的距离G
+        for(int i = 0; i < uwbTaskIndex; i++)                                            //获取初始坐标点到每个任务点的距离G
         {
             _tempDis0 = e->astar->getG(e->ui->label_UWB->start, e->ui->label_UWB->end[i], false);
             //dis0_end[i] = _tempDis0;
             dis0[i] = (int)(_tempDis0 * pow(1.002, _tempDis0) * e->ui->label_UWB->end[i].omega);
             //qDebug() << i << " : " << dis0[i];
         }
-        e->sa->transportG(GBuf, e->ui->label_UWB->UWBTaskIndex);                                              //传输距离数组，并初始化
-        e->sa->setNum(e->ui->label_UWB->UWBTaskIndex);
+        e->sa->transportG(GBuf, uwbTaskIndex);                                              //传输距离数组，并初始化
+        e->sa->setNum(uwbTaskIndex);
         e->sa->Init_path(e->codeBuf);                                                                         //传输任务代号，使得路径与代号联立起来
         e->sa->getDis0(dis0);
         //e->sa->getDis0_end(dis0_end);
-        e->sa->TSP_SA();
+        if(aut)                                                                                               //自动路径规划，执行优化算法
+        {
+            e->sa->TSP_SA();
+        }
         e->_nodeNum = e->sa->get_Node_Num();
-        e->path = e->sa->get_Path(e->ui->label_UWB->UWBTaskIndex);                                               //获取模拟退火算法优化后的路径
+        e->path = e->sa->get_Path(uwbTaskIndex);                                               //获取模拟退火算法优化后的路径
         nowTask_index = e->find_taskName(e->path.code[0]);                                                    //通过任务代号获取当前正在执行的任务
         //------------------------------------------------------------------------------------------------------------------------------------------------
         //调试
@@ -1397,6 +1438,11 @@ void MainWidget::slot_createFinish(const QString text)                          
     _node = ui->label_UWB->get_vector_node();
     ui->textEdit_total->append(text);
     ui->label_UWB->update();
+}
+
+void MainWidget::slot_textAppend(const QString &str)
+{
+    ui->textEdit_total->append(str);
 }
 //void MainWidget::singShot(const size_t &sec)
 //{

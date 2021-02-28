@@ -66,7 +66,7 @@ public:
     QWebChannel *channel;
     double generateRand(float min, float max);            //产生随机数函数
     static void setAckTrue();
-    friend void createPath(MainWidget *e);
+    friend void createPath(MainWidget *e, const bool &aut);
 
 public slots:
     void receiveTaskCoordinate(QString, QString);
@@ -74,6 +74,7 @@ public slots:
     void receiveShipCurrentPoint(QString lng, QString lat);
     void area_GPS();
     void slot_createFinish(const QString text);
+    void slot_textAppend(const QString &str);
 
 private slots:
     int find_taskName(int code);
@@ -97,7 +98,7 @@ private slots:
 signals:
     void init_close();
     void createFinish(const QString text);
-
+    void signal_textAppend(const QString &str);
 private:
     Ui::MainWidget *ui;
 
@@ -123,6 +124,7 @@ private:
     void dowork(int _contIndex);
     void slot_createAuto();
     void slot_createSet();
+    void slot_load();
 //----------------------------------------------------------------
     //手动设置路径部分
     double m_setPathPointLng[50];                       //手动路径点经度数组
@@ -184,6 +186,6 @@ private:
     VideoWidget *m_videowidget;  //视频窗口
 };
 
-void createPath(MainWidget *e);                                                                     //生成路径回调函数
+void createPath(MainWidget *e, const bool &aut);                                                                     //生成路径回调函数
 
 #endif // MAINWIDGET_H

@@ -40,5 +40,9 @@
         <file>picture/up.png</file>
         <file>picture/winicon.png</file>
         <file>picture/yes.png</file>
+        <file>picture/btn_auto.png</file>
+        <file>picture/btn_load.png</file>
+        <file>picture/btn_save.png</file>
+        <file>picture/btn_set.png</file>
     </qresource>
 </RCC>

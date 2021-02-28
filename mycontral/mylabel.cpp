@@ -3,7 +3,8 @@
 #endif
 
 #include "mylabel.h"
-#include<QDebug>
+#include <QDebug>
+#include <QWidget>
 
 bool initIsTimeout = false;
 bool isSetPoint = false;
@@ -22,7 +23,6 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     initTimeout = new QTimer();
     btn_areaClear = new QPushButton();
     start = APoint(35, 25);
-    //start = QPoint(30, 30);
     node.push_back(QPoint());                                         //初始化使用
 
     btn_areaClear->setStyleSheet("color: rgb(246, 184, 75); font: 10pt 'OPPOSans'; border-radius:5px");
@@ -42,42 +42,44 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
         this->update();
     });
     connect(btn_areaClear, &QPushButton::clicked, this, &myLabel::clearArea);
+    //connect(btn_areaClear, &QPushButton::clicked, this, [=](){loadEnableArea();});
     //this->installEventFilter(this);                                 //安装事件过滤器
 
-    enableArea.x[0] = 5;
-    enableArea.x[1] = 5;
-    enableArea.x[2] = 236;
-    enableArea.x[3] = 236;
-    enableArea.x[4] = 354;
-    enableArea.x[5] = 480;
-    enableArea.x[6] = 480;
-    enableArea.x[7] = 353;
-    enableArea.x[8] = 253;
-    enableArea.x[9] = 253;
-    enableArea.y[0] = 4;
-    enableArea.y[1] = 593;
-    enableArea.y[2] = 593;
-    enableArea.y[3] = 443;
-    enableArea.y[4] = 320;
-    enableArea.y[5] = 320;
-    enableArea.y[6] = 185;
-    enableArea.y[7] = 185;
-    enableArea.y[8] = 25;
-    enableArea.y[9] = 4;
-    areaPoint.push_back(QPoint(5, 4));
-    areaPoint.push_back(QPoint(5, 593));
-    areaPoint.push_back(QPoint(236, 593));
-    areaPoint.push_back(QPoint(236, 443));
-    areaPoint.push_back(QPoint(354, 320));
-    areaPoint.push_back(QPoint(480, 320));
-    areaPoint.push_back(QPoint(480, 185));
-    areaPoint.push_back(QPoint(353, 185));
-    areaPoint.push_back(QPoint(253, 25));
-    areaPoint.push_back(QPoint(253, 4));
-    model = 1;
-    enableArea.index = 10;
-    isSetEnableArea = true;
-    initMaze();
+//    enableArea.x[0] = 5;
+//    enableArea.x[1] = 5;
+//    enableArea.x[2] = 236;
+//    enableArea.x[3] = 236;
+//    enableArea.x[4] = 354;
+//    enableArea.x[5] = 480;
+//    enableArea.x[6] = 480;
+//    enableArea.x[7] = 353;
+//    enableArea.x[8] = 253;
+//    enableArea.x[9] = 253;
+//    enableArea.y[0] = 4;
+//    enableArea.y[1] = 593;
+//    enableArea.y[2] = 593;
+//    enableArea.y[3] = 443;
+//    enableArea.y[4] = 320;
+//    enableArea.y[5] = 320;
+//    enableArea.y[6] = 185;
+//    enableArea.y[7] = 185;
+//    enableArea.y[8] = 25;
+//    enableArea.y[9] = 4;
+//    areaPoint.push_back(QPoint(5, 4));
+//    areaPoint.push_back(QPoint(5, 593));
+//    areaPoint.push_back(QPoint(236, 593));
+//    areaPoint.push_back(QPoint(236, 443));
+//    areaPoint.push_back(QPoint(354, 320));
+//    areaPoint.push_back(QPoint(480, 320));
+//    areaPoint.push_back(QPoint(480, 185));
+//    areaPoint.push_back(QPoint(353, 185));
+//    areaPoint.push_back(QPoint(253, 25));
+//    areaPoint.push_back(QPoint(253, 4));
+//    model = 1;
+//    enableArea.index = 10;
+//    isSetEnableArea = true;
+//    initMaze();
+    loadEnableArea();                                               //打开加载可行域
 }
 
 void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠标事件
@@ -186,7 +188,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
                 {
                     pointbuf.x[pointI+1] = point.x[pointI];
                     pointbuf.y[pointI+1] = point.y[pointI];
-                    MainWidget::setAckTrue();                                                   //调用mainwidget函数设置ack为真，发送下一个地点坐标
+                    MainWidget::setAckTrue();                                                   //调用myLabel函数设置ack为真，发送下一个地点坐标
                     AckNum++;
                     pointI++;
                 }
@@ -247,7 +249,7 @@ void myLabel::clearSetPath()                                                    
     memset(point.y, 0, 60);
 }
 
-void myLabel::getCurrent(double x, double y)                      //获取mainwidget发送的数据
+void myLabel::getCurrent(double x, double y)                      //获取myLabel发送的数据
 {
     _x = x/10;
     _y = y/10;
@@ -363,22 +365,17 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd
     nodeParent *= 10;
     if(_node.size() > 1)                                                                            //节点数大于1做平滑优化
     {
-        for(auto &p : _node)
+        for(const auto &p : _node)
         {
             currentPoint = p*10;
             if(intersect(nodeParent, currentPoint, areaPoint))
             {
-    //            node_buf.setX(laterPoint.x()*10);                                                               //放大10倍
-    //            node_buf.setY(laterPoint.y()*10);
-    //            node.push_back(node_buf);
                 node.push_back(laterPoint);
                 nodeParent = laterPoint;
-                //qDebug() << "is intersect ...";
             }
             else
             {
                 laterPoint = currentPoint;
-                //qDebug() << "no intersect ...";
                 continue;
             }
             //实际使用版本
@@ -401,10 +398,6 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd
         node_buf.setX(end[_route].x*10);
         node_buf.setY(end[_route].y*10);
         node.push_back(node_buf);
-//        qDebug() << "the x, y of node_buf : " << node_buf.x() << ", " << node_buf.y();
-//        qDebug() << "the value of route : " << _route;
-//        qDebug() << "is add endPoint ...";
-//        qDebug() << "the size of node : " << node.size();
     }
     isCreatePath = true;
 }
@@ -515,6 +508,165 @@ void myLabel::initMaze()
         }
         this->maze = mazebuf;
         update();                                                   //更新
+    }
+}
+
+void myLabel::slot_waringShow()
+{
+    QMessageBox::StandardButton click = QMessageBox::question(NULL, "Tip", "导入数据会清除现有任务数据，是否继续？");
+    if(click == QMessageBox::Yes)
+    {
+        slot_load();
+    }
+    else
+    {
+        return;
+    }
+}
+
+void myLabel::slot_load()                                           //加载数据槽函数
+{
+    QFile file("data.json");
+    QJsonValue jsonVal;
+    QJsonArray jsonArr;
+    QJsonObject jsonObj;
+    QJsonDocument parse;
+    QJsonParseError eor;
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if(file.isOpen())
+    {
+        QByteArray byteArr = file.readAll();
+        file.close();
+        parse = QJsonDocument::fromJson(byteArr, &eor);
+        if(eor.error == QJsonParseError::NoError)
+        {
+            emit signal_clearTask();                                                                //清除旧数据
+            jsonArr = parse.array();
+            UWBTaskIndex = jsonArr.size() - 1;                                                      //-1除去第一个开始坐标点
+            jsonVal = jsonArr.at(0);
+            jsonObj = jsonVal.toObject();
+            start = APoint(jsonObj.take("x").toInt(), jsonObj.take("y").toInt());
+            for(int i = 0; i < UWBTaskIndex; i++)
+            {
+                jsonVal = jsonArr.at(i+1);
+                jsonObj = jsonVal.toObject();
+                int x = jsonObj.take("x").toInt();
+                int y = jsonObj.take("y").toInt();
+                UWBtask[i].UWBTaskName = jsonObj.take("name").toString();
+                UWBtask[i].UWBTaskCode = jsonObj.take("code").toInt();
+                UWBtask[i].UWBTaskLevel = jsonObj.take("level").toString();
+                UWBtask[i].x = x;
+                UWBtask[i].y = y;
+                int taskContantIndex = jsonObj.take("contantIndex").toInt();
+                double jomega = jsonObj.take("omega").toDouble();
+                APoint buf(x/10, y/10, jomega, taskContantIndex);
+                end.push_back(buf);
+            }
+            model = 4;
+            emit signal_load();
+        }
+        else
+        {
+            emit signal_textAppend("读取失败，数据文件格式错误!");
+            return;
+        }
+    }
+    else
+    {
+        emit signal_textAppend("数据文件丢失!");
+        return;
+    }
+}
+
+void myLabel::slot_save()                                                           //保存数据槽函数
+{
+    QFile file("data.json");
+    QJsonArray jsonArr;
+    QJsonObject jsonObj;
+    QJsonObject startObj;
+    QJsonDocument jsonDoc;
+
+    startObj.insert("x", start.x);
+    startObj.insert("y", start.y);
+    jsonArr.insert(0, startObj);
+    for(int i = 0; i < UWBTaskIndex; i++)
+    {
+        jsonObj.insert("name", UWBtask[i].UWBTaskName);
+        jsonObj.insert("code", UWBtask[i].UWBTaskCode);
+        jsonObj.insert("level", UWBtask[i].UWBTaskLevel);
+        jsonObj.insert("contantIndex", end.at(i).taskContantIndex);
+        jsonObj.insert("x", UWBtask[i].x);
+        jsonObj.insert("y", UWBtask[i].y);
+        jsonObj.insert("omega", end.at(i).omega);
+        jsonArr.insert(i+1, jsonObj);
+    }
+    jsonDoc.setArray(jsonArr);
+    QByteArray byteArr = jsonDoc.toJson(QJsonDocument::Compact);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    file.write(byteArr);
+    file.close();
+
+    QFile areaFile("area.json");
+    QJsonArray jsonAreaArr;
+    QJsonObject jsonAreaObj;
+    QJsonDocument jsonAreaDoc;
+    for(int i = 0; i < enableArea.index; i++)
+    {
+        jsonAreaObj.insert("x", enableArea.x[i]);
+        jsonAreaObj.insert("y", enableArea.y[i]);
+        jsonAreaArr.insert(i, jsonAreaObj);
+    }
+    jsonAreaDoc.setArray(jsonAreaArr);
+    QByteArray byteAreaArr = jsonAreaDoc.toJson(QJsonDocument::Compact);
+    areaFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    areaFile.write(byteAreaArr);
+    areaFile.close();
+    emit signal_textAppend("保存成功!");
+}
+
+void myLabel::loadEnableArea()
+{
+    QFile file("area.json");
+    QJsonValue jsonVal;
+    QJsonArray jsonArr;
+    QJsonObject jsonObj;
+    QJsonDocument parse;
+    QJsonParseError eor;
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if(file.isOpen())
+    {
+        QByteArray byteArr = file.readAll();
+        file.close();
+        parse = QJsonDocument::fromJson(byteArr, &eor);
+        if(eor.error == QJsonParseError::NoError)
+        {
+            jsonArr = parse.array();
+            enableArea.index = jsonArr.size();
+            for(int i = 0; i < enableArea.index; i++)
+            {
+                jsonVal = jsonArr.at(i);
+                jsonObj = jsonVal.toObject();
+                int x = jsonObj.take("x").toInt();
+                int y = jsonObj.take("y").toInt();
+                enableArea.x[i] = x;
+                enableArea.y[i] = y;
+                QPoint buf(x, y);
+                areaPoint.push_back(buf);
+            }
+            model = 1;
+            isSetEnableArea = true;
+            initMaze();
+        }
+        else
+        {
+            emit signal_textAppend("读取失败，数据文件格式错误!");
+            return;
+        }
+    }
+    else
+    {
+        emit signal_textAppend("数据文件丢失!");
+        return;
     }
 }
 //接口

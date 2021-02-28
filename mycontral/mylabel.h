@@ -1,18 +1,18 @@
 ﻿#ifndef MYLABEL_H
 #define MYLABEL_H
 
+#include <QMouseEvent>
+#include <QPushButton>
+#include <QPainter>
+#include <stdio.h>
 #include <QLabel>
 #include <QDebug>
-#include <QMouseEvent>
-#include <QPainter>
-#include "widget/mainwidget.h"
-#include <stdio.h>
 #include <math.h>
 #include <QDebug>
 #include <vector>
 #include <list>
+#include "widget/mainwidget.h"
 #include "algorithm/astar.h"
-#include <QPushButton>
 
 typedef struct{
     double x[60];
@@ -75,6 +75,9 @@ public:
     void clearArea();
     void setStopCalc(const bool &statu);
     bool getStopCalc() const;
+    void slot_load();
+    void slot_save();
+    void slot_waringShow();
 
 private:
     int test = 0;
@@ -102,12 +105,16 @@ private:
     bool pointAndLine(const QPoint &a, const QPoint &b, const QPoint &c, const QPoint &d);
     bool intersect(const QPoint &a, const QPoint &b, const vector<QPoint> &vecAreaPoint);
     void vecRemove(const APoint &rpoint);
+    void loadEnableArea();
     void initMaze();
 
 signals:
-    void isAddPoint();
     void isArrive();
     void abnormal();
+    void isAddPoint();
+    void signal_load();
+    void signal_clearTask();
+    void signal_textAppend(const QString &str);
 };
 
 #endif // MYLABEL_H

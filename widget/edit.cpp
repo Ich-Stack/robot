@@ -17,8 +17,20 @@ EDIT::EDIT(QWidget *parent) :
     ui->btn_addcoor->setNorAndPre(":/picture/btn_addcoor.png");
     ui->btn_addtask->setNorAndPre(":/picture/btn_addtask.png");
 
+    btn_load = new MYBTN(ui->frame);
+    btn_save = new MYBTN(ui->frame);
+    btn_load->setNorAndPre(":/picture/btn_load.png");
+    btn_save->setNorAndPre(":/picture/btn_save.png");
+    btn_load->move(290, 100);
+    btn_load->resize(90, 25);
+    btn_save->move(290, 150);
+    btn_save->resize(90, 25);
+
     QRegularExpressionValidator *regExpress = new QRegularExpressionValidator(QRegularExpression("^\\d{0,3}$"));
     ui->lineEdit_taskcode->setValidator(regExpress);
+
+    connect(btn_save, &QPushButton::clicked, this, [=](){this->close();});
+    connect(btn_load, &QPushButton::clicked, this, [=](){this->close();});
 }
 
 EDIT::~EDIT()
