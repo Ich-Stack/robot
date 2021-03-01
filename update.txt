@@ -48,4 +48,4 @@
 
 3、增加messagebox，choose的UI
 
-4、（bug）导入数据再加任务点，生成路径有几率崩
+4、（bug）导入数据再加任务点，生成路径有几率崩->label中QPoint nodeParent = _node.front()。参数中的列表可能为空

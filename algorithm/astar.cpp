@@ -8,28 +8,28 @@
 ASTAR::ASTAR()
 {
     //minheap_openlist = new MinHeap<APoint*>();
-    openList.clear();
-    closeList.clear();
+    //openList.clear();
+    //closeList.clear();
 }
 
 void ASTAR::InitAstar(std::vector<std::vector<bool>>& _maze)
 {
     maze = _maze;
-    QFile  myfile("maze.txt");//创建一个输出文件的文档
-    if (myfile.open(QFile::WriteOnly|QFile::Truncate))//注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
-    {
-        //读取之前setPlainText的内容，或直接输出字符串内容QObject::tr()
-        QTextStream out(&myfile);
-        for(int i = 0; i < max_map_num; i++)
-        {
-            for(int j = 0; j < max_map_num; j++)
-            {
-                out<<maze[i][j];
-            }
-            out << endl;
-        }
-        out << maze.size() << ',' << maze[0].size();
-    }
+//    QFile  myfile("maze.txt");//创建一个输出文件的文档
+//    if (myfile.open(QFile::WriteOnly|QFile::Truncate))//注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+//    {
+//        //读取之前setPlainText的内容，或直接输出字符串内容QObject::tr()
+//        QTextStream out(&myfile);
+//        for(int i = 0; i < max_map_num; i++)
+//        {
+//            for(int j = 0; j < max_map_num; j++)
+//            {
+//                out<<maze[i][j];
+//            }
+//            out << endl;
+//        }
+//        out << maze.size() << ',' << maze[0].size();
+//    }
 }
 
 int ASTAR::calcG(APoint* temp_start, APoint* point)
@@ -50,7 +50,7 @@ int ASTAR::calcH(APoint* point, APoint* end)
     int dy = abs(point->y - end->y);
     return kCost1 * (dx + dy) + (kCost2 - 2 * kCost1) * fmin(dx, dy);//切比雪夫距离
     //计算欧几里得距离H
-    //return (int)(abs(end->x - point->x)+abs(end->y - point->y)) * kCost1;
+//    return (int)(abs(end->x - point->x)+abs(end->y - point->y)) * kCost1;
 //    int dx = pow(end->x - point->x, 2);
 //    int dy = pow(end->y - point->y, 2);
 //    return static_cast<int>(sqrt(dx + dy) * kCost1);
@@ -87,11 +87,11 @@ APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorne
         openList.push_back(new APoint(startPoint.x, startPoint.y)); //置入起点,拷贝开辟一个节点，内外隔离
         while (!openList.empty())
         {
-            auto curPoint = getLeastFpoint(); //找到F值最小的点
+            const auto curPoint = getLeastFpoint(); //找到F值最小的点
             openList.remove(curPoint); //从开启列表中删除
             closeList.push_back(curPoint); //放到关闭列表
             //找到当前周围八个格中可以通过的格子
-            auto surroundPoints = getSurroundPoints(curPoint, isIgnoreCorner);
+            const auto surroundPoints = getSurroundPoints(curPoint, isIgnoreCorner);
             for (auto& target : surroundPoints)
             {
                 //对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
@@ -118,7 +118,7 @@ APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorne
                     }
                 }
                 APoint* resPoint = isInList(openList, &endPoint);
-                if (resPoint)
+                if (resPoint != NULL)
                     return resPoint; //返回列表里的节点指针，不要用原来传入的endpoint指针，因为发生了深拷贝
             }
         }
@@ -131,6 +131,7 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
     APoint* result = findPath(startPoint, endPoint, isIgnoreCorner);
     if (result == NULL)                                                                             //道路封闭，寻找不到路
     {
+        qDebug() << "result is NULL ...";
         std::list<QPoint> none;
         openList.clear();
         closeList.clear();
@@ -144,6 +145,7 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
     path.push_front(result->toQPoint());                                                     //加入第一个节点，因为计算从第二个节点开始
     if(result->parent == NULL)                                                               //起点与终点相同，返回当前点
     {
+        qDebug() << "result's parent is NULL ...";
         path.push_front(result->toQPoint());                                                 //避免直接发送第二个坐标点
         openList.clear();
         closeList.clear();
@@ -181,7 +183,7 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
 APoint* ASTAR::isInList(const std::list<APoint*>& list, const APoint* point) const
 {
     //判断某个节点是否在列表中，这里不能比较指针，因为每次加入列表是新开辟的节点，只能比较坐标
-    for (auto p : list)
+    for (const auto p : list)
         if (p->x == point->x && p->y == point->y)
             return p;
     return NULL;

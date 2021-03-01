@@ -42,43 +42,8 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
         this->update();
     });
     connect(btn_areaClear, &QPushButton::clicked, this, &myLabel::clearArea);
-    //connect(btn_areaClear, &QPushButton::clicked, this, [=](){loadEnableArea();});
     //this->installEventFilter(this);                                 //安装事件过滤器
 
-//    enableArea.x[0] = 5;
-//    enableArea.x[1] = 5;
-//    enableArea.x[2] = 236;
-//    enableArea.x[3] = 236;
-//    enableArea.x[4] = 354;
-//    enableArea.x[5] = 480;
-//    enableArea.x[6] = 480;
-//    enableArea.x[7] = 353;
-//    enableArea.x[8] = 253;
-//    enableArea.x[9] = 253;
-//    enableArea.y[0] = 4;
-//    enableArea.y[1] = 593;
-//    enableArea.y[2] = 593;
-//    enableArea.y[3] = 443;
-//    enableArea.y[4] = 320;
-//    enableArea.y[5] = 320;
-//    enableArea.y[6] = 185;
-//    enableArea.y[7] = 185;
-//    enableArea.y[8] = 25;
-//    enableArea.y[9] = 4;
-//    areaPoint.push_back(QPoint(5, 4));
-//    areaPoint.push_back(QPoint(5, 593));
-//    areaPoint.push_back(QPoint(236, 593));
-//    areaPoint.push_back(QPoint(236, 443));
-//    areaPoint.push_back(QPoint(354, 320));
-//    areaPoint.push_back(QPoint(480, 320));
-//    areaPoint.push_back(QPoint(480, 185));
-//    areaPoint.push_back(QPoint(353, 185));
-//    areaPoint.push_back(QPoint(253, 25));
-//    areaPoint.push_back(QPoint(253, 4));
-//    model = 1;
-//    enableArea.index = 10;
-//    isSetEnableArea = true;
-//    initMaze();
     loadEnableArea();                                               //打开加载可行域
 }
 
@@ -95,8 +60,6 @@ void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠�
             enableArea.x[enableArea.index] = ev->x();
             enableArea.y[enableArea.index] = ev->y();
             areaPoint.push_back(QPoint(ev->x(), ev->y()));
-//            areaPoint[enableArea.index].setX(ev->x());
-//            areaPoint[enableArea.index].setY(ev->y());
             enableArea.index++;
 //            qDebug() << '(' << ev->x() << ", " << ev->y() << ')';
         }
@@ -181,7 +144,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
         }
         if(point.x[0] && point.y[0])                                                        //设备坐标与地点坐标距离少于10cm判断到达
         {
-            double dis = pow(point.x[pointI] - _x*10, 2) + pow((point.y[pointI] - _y*10)/ratio, 2);      //计算手动路径下的目标点距离，y方向按比例缩小
+            double dis = pow(point.x[pointI] - _x, 2) + pow((point.y[pointI] - _y)/ratio, 2);      //计算手动路径下的目标点距离，y方向按比例缩小
             if(dis < 3000)//3000
             {
                 if(AckNum < point.index)
@@ -230,7 +193,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
     }
     if(_x && _y)
     {
-        painter.drawEllipse(QPoint(_x*10, _y*10), 9, 9);                              //画当前设备圆
+        painter.drawEllipse(QPoint(_x, _y), 9, 9);                              //画当前设备圆
     }
 }
 
@@ -251,16 +214,16 @@ void myLabel::clearSetPath()                                                    
 
 void myLabel::getCurrent(double x, double y)                      //获取myLabel发送的数据
 {
-    _x = x/10;
-    _y = y/10;
+    _x = x;
+    _y = y;
     inArea = pnpoly(enableArea.index, enableArea.x, enableArea.y, x, y);
 //    if(isSetPoint && initIsTimeout && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     if(!isCreatePath && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     {
-        APoint temp(_x, _y);
+        APoint temp(x/10, y/10);
         start = temp;                                     //设备开始的位置
-        pointbuf.x[0] = _x;                                        //记录开机的坐标
-        pointbuf.y[0] = _y;
+        pointbuf.x[0] = x/10;                                        //记录开机的坐标
+        pointbuf.y[0] = y/10;
     }
     if(stopCalc)
     {
@@ -279,7 +242,9 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
             if(end_dis < 3000)//3000                //到达坐标点发送下一个任务坐标
             {
                 //vecRemove(end.at(test));
-                emit isArrive();                                                                        //触发信号，产生前往下一个任务坐标的路径节点
+                _x = end.at(test).x*10;
+                _y = end.at(test).y*10;
+                QTimer::singleShot(200, [=](){emit isArrive();});                       //触发信号，产生前往下一个任务坐标的路径节点
                 //UWBTaskIndex--;
             }
         }
@@ -354,11 +319,15 @@ void myLabel::clearTaskModel()                                   //清空enableA
 
 void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd)                   //获取节点list储存到数组
 {
+    if(0 == _node.size())
+    {
+        qDebug() << "NULL ...";
+        return;
+    }
     QPoint node_buf;
     QPoint nodeParent = _node.front();
     QPoint laterPoint;
     QPoint currentPoint;
-    //node.push_back(_node.front()*10);
     node.pop_back();                                                                           //去掉寻路第一个重复的节点
     node.push_back(nodeParent*10);
     route = _route;

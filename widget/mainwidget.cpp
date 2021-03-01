@@ -5,8 +5,6 @@
 #include "mainwidget.h"
 #include "ui_mainwidget.h"
 
-double _x = 0;
-double _y = 0;
 bool Ack = false;                                               //全局变量，方便静态函数调用
 int UWBindex = 0;
 int nowtaski = 0;
@@ -506,11 +504,18 @@ void MainWidget::on_btn_clearTask_clicked()
         {
             on_btn_run_clicked();
         }
+        Ack = false;            //全局变量，方便静态函数调用
+        xbuf = 0;
+        ybuf = 0;
         m_taskI = 0;            //清空tablewidget的item数量
         nowtaski = 0;           //清空路径迭代
         _nodeNum = 0;
+        xbuflast = 0;
+        ybuflast = 0;
+        contIndex = 0;
         route_index = 0;        //清空迭代
         doworkTimes = 0;
+        m_taskNumber = 0;
         path.clear();           //清空优化后路径
         _node.clear();          //清空节点向量
         isCreatePath = false;
@@ -525,13 +530,13 @@ void MainWidget::on_btn_clearTask_clicked()
         ui->lineEdit_pH->clear();
         ui->lineEdit_temperature->clear();
         ui->lineEdit_turbidity->clear();
-        //ui->textEdit_total->clear();
         ui->label_UWB->clearTaskModel();                           //清空任务名称，代号，要求 和 清空可行域数组
         while(UWBindex > 0)                                 //清空tablewidget
         {
             UWBindex--;
             ui->tableWidget_info->removeRow(UWBindex);
         }
+        UWBindex = 0;
     }
 }
 
@@ -689,34 +694,26 @@ void MainWidget::on_btn_opencpm_clicked()
 //                qDebug() << "Manufacturer: " << info.manufacturer();
 //                qDebug() << "Serial Number: " << info.serialNumber();
 //                qDebug() << "System Location: " << info.systemLocation();
-            }
-            if(serialNumber == "0001")                              //连接特定的串口
-            {
-                m_spcomm->setBaudRate(9600);                        //波特率9600
-                m_spcomm->_setPort(_info);                          //设置端口，连接
-                if(m_spcomm->open())
+                if(serialNumber == "0001")                              //连接特定的串口
                 {
-                    m_spcomm->isOpen = true;
-                    ui->label_UWB->setRatio(dialog->getRatio());    //设置补偿倍数
-                    ui->label_UWB->timer->start(500);
-                    ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
-                    ui->textEdit_total->append("成功连接设备!");
-                    setStateColor(0, 255, 0);                       //改变状态指示灯颜色
-                    m_client->sub("/mqtt/pub");
-                    ui->label_UWB->getCurrent(300, 300);
-                    //ui->lineEdit_currentLng_x->setText("300");
-                    //ui->lineEdit_currentLat_y->setText("301");
-                    //-----------------------------------------------------------------------------------------------------------------------------
-                }
-                else
-                {
-                    return;
+                    m_spcomm->setBaudRate(9600);                        //波特率9600
+                    m_spcomm->_setPort(_info);                          //设置端口，连接
+                    if(m_spcomm->open())
+                    {
+                        m_spcomm->isOpen = true;
+                        ui->label_UWB->setRatio(dialog->getRatio());    //设置补偿倍数
+                        ui->label_UWB->timer->start(500);
+                        ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
+                        ui->textEdit_total->append("成功连接设备!");
+                        setStateColor(0, 255, 0);                       //改变状态指示灯颜色
+                        m_client->sub("/mqtt/pub");
+                        ui->label_UWB->getCurrent(300, 300);
+                        return;
+                    }
                 }
             }
-            else
-            {
-                ui->textEdit_total->append("端口信息错误！\n无法连接设备!");
-            }
+            ui->textEdit_total->append("端口信息错误！\n无法连接设备!");
+            return;
         }
     }
     else
@@ -848,12 +845,19 @@ void MainWidget::disposeData()//------------------------------------------------
     QString x = list.at(0);
     QString y = list.at(1);
 
-    _x = x.toDouble()*600/dialog->getLength();
-    _y = y.toDouble()*600/dialog->getWidth();
+    double _x = x.toDouble()*600/dialog->getLength();
+    double _y = y.toDouble()*600/dialog->getWidth();
 
-    ui->lineEdit_currentLng_x->setText(QString::number(_x, 'f', 2));
-    ui->lineEdit_currentLat_y->setText(QString::number(_y, 'f', 2));                                     //展示
-    ui->label_UWB->getCurrent(_x, 600 - _y);                   //按照比例尺发送坐标给mylabel
+//    ui->lineEdit_currentLng_x->setText(QString::number(_x, 'f', 2));
+//    ui->lineEdit_currentLat_y->setText(QString::number(_y, 'f', 2));                                     //展示
+
+    int ix = static_cast<int>((_x + 5) / 10) * 10;
+    int iy = static_cast<int>((_y + 5) / 10) * 10;
+
+    ui->lineEdit_currentLng_x->setText(QString::number(ix));
+    ui->lineEdit_currentLat_y->setText(QString::number(iy));
+
+    ui->label_UWB->getCurrent(ix, 600 - iy);                   //按照比例尺发送坐标给mylabel
 //    }
 //    else
 //    {
@@ -902,10 +906,10 @@ void MainWidget::on_btn_clearPath_clicked()             //清空UWB地图和数�
     if(2 == ui->label_UWB->model)                       //手动设置路径模式下
     {
         Ack = false;
-        ui->label_UWB->model = 0;
-        UWBindex = 0;
         xbuf = 0;
         ybuf = 0;
+        UWBindex = 0;
+        ui->label_UWB->model = 0;
         ui->label_UWB->clearSetPath();
         ui->label_UWB->clear();
         ui->lineEdit_currentLng_x->clear();
@@ -922,6 +926,9 @@ void MainWidget::on_btn_clearPath_clicked()             //清空UWB地图和数�
             on_btn_run_clicked();
         }
         //m_taskI = 0;            //清空tablewidget的item数量
+        xbuflast = 0;
+        ybuflast = 0;
+        contIndex = 0;
         nowtaski = 0;           //清空路径迭代
         _nodeNum = 0;
         route_index = 0;        //清空迭代
@@ -951,11 +958,6 @@ void MainWidget::on_btn_run_clicked()
     }
     if(m_spcomm->isOpen)
     {
-//        if(!isCreatePath)
-//        {
-//            ui->textEdit_total->append("请先点击生成路径");
-//            return;
-//        }
         timer_speedStop->start(1100);               //速度显示计时器
         if(true == m_isRun)
         {
@@ -973,6 +975,10 @@ void MainWidget::on_btn_run_clicked()
         }
         else if(false == m_isRun)
         {
+            QByteArray arr("@M100 S\r\n");                      //停止运行发送停止指令
+            char *ch = arr.data();
+            m_spcomm->writeData(ch, arr.length());
+
             ui->btn_run->keyRelease();
             timer_speedStop->start(1000);
             timer_speed->stop();
@@ -1093,17 +1099,17 @@ void MainWidget::dowork(int _contIndex)
         sendDataTimer->stop();
         if(1 == _contIndex)
         {
-            arr = "@M100 V1 170 10\r\n";                   //水质
+            arr = "@M100 V\r\n";                   //水质
             ui->textEdit_total->append("正在执行水质检测任务 ...");
         }
         else if (2 == _contIndex)
         {
-            arr = "@M100 A1 170 10\r\n";                   //抓取
+            arr = "@M100 A\r\n";                   //抓取
             ui->textEdit_total->append("正在执行机械爪抓取任务 ...");
         }
         else if (3 == _contIndex)
         {
-            arr = "@M100 a1 170 10\r\n";                   //救援
+            arr = "@M100 a\r\n";                   //救援
             ui->textEdit_total->append("正在执行救援任务 ...");
         }
         char *ch = arr.data();
@@ -1128,9 +1134,6 @@ void MainWidget::dowork(int _contIndex)
 //        ui->textEdit_total->append("任务完成!");
 //        timer_speedStop->start(1100);
 //        doworkTimes++;
-
-
-
         if(doworkTimes > ui->label_UWB->taskSize() - 1)
         {
             QByteArray arr("@M100 S\r\n");
@@ -1140,16 +1143,12 @@ void MainWidget::dowork(int _contIndex)
             ui->textEdit_total->append("已经顺利完成所有任务！");
             on_btn_run_clicked();
             finishedTask = true;
-            //stopCalc = true;
             m_isStartUp = false;
             ui->lineEdit_distant->clear();
             ui->lineEdit_nowTask->clear();
             return;
         }
         contIndex = ui->label_UWB->settest(path.route[nowtaski]);
-
-
-
 //    });
 }
 
@@ -1353,7 +1352,6 @@ void MainWidget::slot_load()
         ui->tableWidget_info->item(i, 0)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);  //设置文本居中
         ui->tableWidget_info->item(i, 1)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
         ui->tableWidget_info->item(i, 2)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
-        qDebug() << ui->label_UWB->UWBtask[i].UWBTaskLevel;
         if(ui->label_UWB->UWBtask[i].UWBTaskLevel == "紧急")   //紧急为红色
         {
             ui->tableWidget_info->item(i, 0)->setTextColor(QColor(Qt::red));
@@ -1410,11 +1408,11 @@ void createPath(MainWidget *e, const bool &aut)
         nowTask_index = e->find_taskName(e->path.code[0]);                                                    //通过任务代号获取当前正在执行的任务
         //------------------------------------------------------------------------------------------------------------------------------------------------
         //调试
-        e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->start, e->ui->label_UWB->end[e->path.route[0]], false), e->path.route[0], true);      //A*寻路获取节点
-        for(int i = 0; i < e->_nodeNum - 1; i++)
-        {
-            e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->end[e->path.route[i]], e->ui->label_UWB->end[e->path.route[i+1]], false), e->path.route[i+1], true);
-        }
+        e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->start, e->ui->label_UWB->end.at(e->path.route[0]), false), e->path.route[0], true);      //A*寻路获取节点
+//        for(int i = 0; i < e->_nodeNum - 1; i++)
+//        {
+//            e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->end.at(e->path.route[i]), e->ui->label_UWB->end.at(e->path.route[i+1]), false), e->path.route[i+1], true);
+//        }
         //------------------------------------------------------------------------------------------------------------------------------------------------
         for(int i = 0; i < e->_nodeNum; i++)                                                                 //text_total显示路径顺序
         {

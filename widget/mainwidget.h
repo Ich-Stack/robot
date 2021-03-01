@@ -155,7 +155,6 @@ private:
     //friend void sendData(MainWidget *e);
 //-----------------------------------------------------------------
     //UWB部分
-    int num = 0;
     double xbuflast = 0;
     double ybuflast = 0;
     double xbuf = 0;
