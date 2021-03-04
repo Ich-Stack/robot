@@ -17,6 +17,7 @@ public:
     void keyRelease();
     void click_zoom();
     void setNorAndPre(QString _nor, QString _pre = "");
+    //void slot_delay();
 
 signals:
 

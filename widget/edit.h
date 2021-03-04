@@ -28,6 +28,7 @@ public:
     int cmb_work_index();
     MYBTN *btn_load;
     MYBTN *btn_save;
+    void slot_login(const int &Index);
 
 signals:
     void btn_addcoor();
@@ -42,6 +43,7 @@ private:
     Ui::EDIT *ui;
 
 private:
+    virtual void closeEvent(QCloseEvent *event) override;
     virtual void paintEvent(QPaintEvent *e) override;
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 };

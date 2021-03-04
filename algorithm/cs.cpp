@@ -37,7 +37,7 @@ void CS::TSP_SA()
     bool bChange;
     if(_UWBTaskIndex < 2)
     {
-        _path.dis = _dis0[0]*2;
+        _path.dis = _dis0[0];
         return;
     }
     while (t > MIN_TEMPERATURE)                                             //温度
@@ -46,7 +46,7 @@ void CS::TSP_SA()
         for (int i = 0; i < ITERATIONS; ++i)                                //迭代次数
         {
             next = generate(cur);                                           //产生新路径
-            double df = next.dis - cur.dis;
+            int df = next.dis - cur.dis;
             if (df <= 0)                                                    //接受更短的路径
             {
                 cur = next;
@@ -78,11 +78,9 @@ void CS::TSP_SA()
 
         if (times == 2)
         {
-            //emit finishTSP();                                               //迭代次数完成或者达到特定条件触发信号并退出循环
             break;
         }
     }
-    //emit finishTSP();
 }
 PATH CS::generate(PATH p)
 {
@@ -106,8 +104,8 @@ PATH CS::generate(PATH p)
     gen.dis = 0;
     for (int i = 0; i < nodeNum - 1; ++i)
     {
-        gen.dis += G[gen.route[i]][gen.route[i + 1]];           //每个任务之间做路径优化做寻找最短路径
-        gen.dis_alone[i+1] = G[gen.route[i]][gen.route[i + 1]];
+        gen.dis += W[gen.route[i]][gen.route[i + 1]];           //每个任务之间做路径优化做寻找最短路径
+        gen.dis_alone[i+1] = W[gen.route[i]][gen.route[i + 1]];
     }
     gen.dis += _dis0[gen.route[0]];                             //任务间最短路径加上设备当前坐标与第一个目标点的距离
     gen.dis_alone[0] = _dis0[gen.route[0]];
@@ -116,7 +114,7 @@ PATH CS::generate(PATH p)
     return gen;
 }
 
-void CS::transportG(unsigned int (&_G)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
+void CS::transportW(int (&_W)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
 {
     _UWBTaskIndex = index;
     QFile  myfile("G.txt");                                     //创建一个输出文件的文档
@@ -124,7 +122,7 @@ void CS::transportG(unsigned int (&_G)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
     {
         for(int j = 0; j < MAX_CITY_NUM; j++)
         {
-            this->G[i][j] = _G[i][j];
+            this->W[i][j] = _W[i][j];
         }
     }
     //输出在G.txt文件中
@@ -136,7 +134,7 @@ void CS::transportG(unsigned int (&_G)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
         {
             for(int j = 0; j < index; j++)
             {
-                out << G[i][j] << ' ';
+                out << W[i][j] << ' ';
             }
             out << endl;
         }
@@ -232,7 +230,7 @@ PATH CS::get_Path(int num)
 //}
 
 //接口
-void CS::getDis0(int (&dis0)[MAX_CITY_NUM])
+void CS::getWDis0(int (&dis0)[MAX_CITY_NUM])
 {
     for(int i = 0; i < MAX_CITY_NUM; i++)
     {

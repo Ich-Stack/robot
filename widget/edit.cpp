@@ -31,11 +31,18 @@ EDIT::EDIT(QWidget *parent) :
 
     connect(btn_save, &QPushButton::clicked, this, [=](){this->close();});
     connect(btn_load, &QPushButton::clicked, this, [=](){this->close();});
+    connect(ui->cmb_work, static_cast<void (QComboBox::*)(const int index)>(&QComboBox::currentIndexChanged), this, &EDIT::slot_login);
 }
 
 EDIT::~EDIT()
 {
     delete ui;
+}
+
+void EDIT::closeEvent(QCloseEvent *)
+{
+    ui->cmb_level->setCurrentIndex(0);
+    ui->cmb_work->setCurrentIndex(0);
 }
 
 bool EDIT::eventFilter(QObject *obj, QEvent *evt)
@@ -80,6 +87,21 @@ void EDIT::paintEvent(QPaintEvent *)
         painter.setPen(color);
         painter.setBrush(Qt::transparent);
         painter.drawRoundedRect(i,i,this->width()-i*2, this->height()-i*2,15,15);
+    }
+}
+void EDIT::slot_login(const int &index)
+{
+    if(index == 4)
+    {
+        ui->lineEdit_taskcode->setDisabled(true);
+        ui->lineEdit_taskname->setDisabled(true);
+        ui->cmb_level->setDisabled(true);
+    }
+    else
+    {
+        ui->lineEdit_taskcode->setDisabled(false);
+        ui->lineEdit_taskname->setDisabled(false);
+        ui->cmb_level->setDisabled(false);
     }
 }
 void EDIT::lineEdit_taskcode_clear()

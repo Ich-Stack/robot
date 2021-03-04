@@ -297,7 +297,7 @@ QPushButton{border:0px}</string>
     <widget class="QLineEdit" name="lineEdit_currentLat_y">
      <property name="geometry">
       <rect>
-       <x>380</x>
+       <x>370</x>
        <y>5</y>
        <width>85</width>
        <height>35</height>
@@ -329,7 +329,7 @@ color: rgb(124, 124, 124);</string>
     <widget class="QLabel" name="label_6">
      <property name="geometry">
       <rect>
-       <x>320</x>
+       <x>310</x>
        <y>10</y>
        <width>51</width>
        <height>21</height>
@@ -354,7 +354,7 @@ color: rgb(124, 124, 124);</string>
     <widget class="QLabel" name="label_5">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>10</y>
        <width>51</width>
        <height>21</height>
@@ -379,7 +379,7 @@ color: rgb(124, 124, 124);</string>
     <widget class="QLineEdit" name="lineEdit_currentLng_x">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>190</x>
        <y>5</y>
        <width>85</width>
        <height>35</height>
@@ -793,6 +793,22 @@ color: rgb(124, 124, 124);</string>
      <property name="geometry">
       <rect>
        <x>480</x>
+       <y>0</y>
+       <width>70</width>
+       <height>45</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="MYBTN" name="btn_monitoring">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
        <y>52</y>
        <width>70</width>
        <height>45</height>
@@ -846,9 +862,9 @@ QLabel{color: rgb(124, 124, 124)}
     <widget class="QLineEdit" name="lineEdit_oxygen">
      <property name="geometry">
       <rect>
-       <x>355</x>
+       <x>345</x>
        <y>43</y>
-       <width>70</width>
+       <width>90</width>
        <height>30</height>
       </rect>
      </property>
@@ -864,6 +880,9 @@ QLabel{color: rgb(124, 124, 124)}
      <property name="styleSheet">
       <string notr="true">border:1px solid rgb(124, 124, 124);
 color: rgb(124, 124, 124);</string>
+     </property>
+     <property name="text">
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -925,9 +944,9 @@ color: rgb(124, 124, 124);</string>
     <widget class="QLineEdit" name="lineEdit_turbidity">
      <property name="geometry">
       <rect>
-       <x>232</x>
+       <x>222</x>
        <y>43</y>
-       <width>60</width>
+       <width>70</width>
        <height>30</height>
       </rect>
      </property>
@@ -943,6 +962,9 @@ color: rgb(124, 124, 124);</string>
      <property name="styleSheet">
       <string notr="true">border:1px solid rgb(124, 124, 124);
 color: rgb(124, 124, 124);</string>
+     </property>
+     <property name="text">
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -985,9 +1007,9 @@ color: rgb(124, 124, 124);</string>
     <widget class="QLineEdit" name="lineEdit_temperature">
      <property name="geometry">
       <rect>
-       <x>122</x>
+       <x>112</x>
        <y>43</y>
-       <width>60</width>
+       <width>70</width>
        <height>30</height>
       </rect>
      </property>
@@ -1003,6 +1025,9 @@ color: rgb(124, 124, 124);</string>
      <property name="styleSheet">
       <string notr="true">border:1px solid rgb(124, 124, 124);
 color: rgb(124, 124, 124);</string>
+     </property>
+     <property name="text">
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -1057,6 +1082,9 @@ color: rgb(124, 124, 124);</string>
      <property name="styleSheet">
       <string notr="true">border:1px solid rgb(124, 124, 124);
 color: rgb(124, 124, 124);</string>
+     </property>
+     <property name="text">
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

@@ -44,10 +44,10 @@ public:
     void TSP_SA();
     void Init_City();
     void setNum(int _num);
-    void getDis0(int (&dis0)[MAX_CITY_NUM]);
+    void getWDis0(int (&dis0)[MAX_CITY_NUM]);
     //void getDis0_end(int (&dis0_end)[MAX_CITY_NUM]);
     void Init_path(int (&_codeBuf)[MAX_CITY_NUM]);
-    void transportG(unsigned int (&_G)[MAX_CITY_NUM][MAX_CITY_NUM], int index);
+    void transportW(int (&_W)[MAX_CITY_NUM][MAX_CITY_NUM], int index);
     PATH get_Path(int num);
 //    friend void TSP_Test(CS *c);
 private:
@@ -59,7 +59,7 @@ private:
     int _UWBTaskIndex = 0;
     int _dis0[MAX_CITY_NUM];
     //int _dis0_end[MAX_CITY_NUM];
-    double G[MAX_CITY_NUM][MAX_CITY_NUM];
+    int W[MAX_CITY_NUM][MAX_CITY_NUM];
 signals:
     //void finishTSP();
 };

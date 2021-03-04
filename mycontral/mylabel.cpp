@@ -23,6 +23,7 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     initTimeout = new QTimer();
     btn_areaClear = new QPushButton();
     start = APoint(35, 25);
+    allStart = APoint(10, 10);
     node.push_back(QPoint());                                         //初始化使用
 
     btn_areaClear->setStyleSheet("color: rgb(246, 184, 75); font: 10pt 'OPPOSans'; border-radius:5px");
@@ -44,7 +45,11 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     connect(btn_areaClear, &QPushButton::clicked, this, &myLabel::clearArea);
     //this->installEventFilter(this);                                 //安装事件过滤器
 
+    end.clear();
+    landAfter.clear();
+    logInPoint.clear();
     loadEnableArea();                                               //打开加载可行域
+    loadLandPoint();
 }
 
 void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠标事件
@@ -75,6 +80,15 @@ void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠�
         {
             if(pnpoly(enableArea.index, enableArea.x, enableArea.y, ev->x(), ev->y()))          //调用pnpoly函数，判断放置的点是否在可行域内
             {
+                if(isLandingPoint)
+                {
+                    isLandingPoint = false;                                                            //登陆点坐标记录在logInPoint中
+                    APoint logPoint(ev->x(), ev->y(), isVertical);                                          //计算需要除以10
+                    logInPoint.push_back(logPoint);
+                    emit signal_textAppend("成功放置登陆点");
+                    emit signal_addLandingPoint();                                              //关闭并初始化edit
+                    return;
+                }
                 UWBtask[UWBTaskIndex].x = ev->x();
                 UWBtask[UWBTaskIndex].y = ev->y();
 //                end[UWBTaskIndex] = APoint(ev->x()/10, ev->y()/10);//--------------------------------------------------------------------------------
@@ -107,6 +121,24 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
         for(int i = 0; i < (int)node.size() - 1; i++)
         {
             painter.drawLine(node[i].x(), node[i].y(), node[i+1].x(), node[i+1].y());
+        }
+    }
+    for(int i = 0; i < logInPoint.size(); i++)                                                          //画登陆点，为矩形
+    {
+        painter.setPen(Qt::red);
+        painter.setBrush(Qt::red);
+        int logX = logInPoint.at(i).x;
+        int logY = logInPoint.at(i).y;
+        bool vert = logInPoint.at(i).vertical;
+        if(vert)
+        {
+            painter.drawRect(logX-7, logY-10, 15, 20);
+            painter.drawText(logX-20, logY-15, "登陆点");
+        }
+        else
+        {
+            painter.drawRect(logX-10, logY-7, 20, 15);
+            painter.drawText(logX-20, logY-10, "登陆点");
         }
     }
     if(1 == model)                                                              //动态绘制多边形可行区域
@@ -217,13 +249,18 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
     _x = x;
     _y = y;
     inArea = pnpoly(enableArea.index, enableArea.x, enableArea.y, x, y);
-//    if(isSetPoint && initIsTimeout && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
-    if(!isCreatePath && inArea)                               //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
+//    if(isSetPoint && initIsTimeout && inArea)                      //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
+    if(!isCreatePath && inArea)                                      //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     {
         APoint temp(x/10, y/10);
-        start = temp;                                     //设备开始的位置
+        start = temp;                                                //设备开始的位置
         pointbuf.x[0] = x/10;                                        //记录开机的坐标
         pointbuf.y[0] = y/10;
+        if(allFirst)
+        {
+            allStart = temp;
+            allFirst = false;
+        }
     }
     if(stopCalc)
     {
@@ -231,7 +268,7 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
     }
     if(isCreatePath)//taskModel && isSetPoint &&
     {
-        double end_dis = pow(x - end.at(test).x*10, 2) + pow((y - end.at(test).y*10)/ratio, 2);
+        double end_dis = pow(x - end.at(nowIndex).x*10, 2) + pow((y - end.at(nowIndex).y*10)/ratio, 2);
         double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
         if(node_dis < 3000)//3000           //到达节点发送下一个节点
         {
@@ -239,11 +276,29 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
             {
                 node_index++;
             }
+
+            if(nowIndex == landAfter.at(landAfterIndex))        //判断下终点点是否需要经过登陆点
+            {
+                double land_dis = pow(x - logInPoint.at(landIndex).x, 2) + pow(y - logInPoint.at(landIndex).y/ratio, 2);//计算距离
+                if(land_dis < 3000)                 //登陆模式结束
+                {
+                    landAfterIndex++;
+                    emit signal_landed();
+                    return;
+                }
+                if(land_dis < 3000 && landing)      //登陆模式
+                {
+                    landing = false;
+                    emit signal_landing();
+                }
+                return;
+            }
+
             if(end_dis < 3000)//3000                //到达坐标点发送下一个任务坐标
             {
                 //vecRemove(end.at(test));
-                _x = end.at(test).x*10;
-                _y = end.at(test).y*10;
+                _x = end.at(nowIndex).x*10;
+                _y = end.at(nowIndex).y*10;
                 QTimer::singleShot(200, [=](){emit isArrive();});                       //触发信号，产生前往下一个任务坐标的路径节点
                 //UWBTaskIndex--;
             }
@@ -296,10 +351,11 @@ bool myLabel::pnpoly(int nvert, double *vertx, double *verty, int testx, int tes
 
 void myLabel::clearTaskModel()                                   //清空enableArea函数（清除任务模式数据）
 {
-    route = 0;
+    //route = 0;
     model = 0;                                              //不可编辑模式
     node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
     UWBTaskIndex = 0;
+    landAfterIndex = 0;
     node.clear();                                           //初始化节点向量
     node.push_back(QPoint());
     work_finish = false;
@@ -317,11 +373,11 @@ void myLabel::clearTaskModel()                                   //清空enableA
     update();
 }
 
-void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd)                   //获取节点list储存到数组
+void myLabel::get_Node(const std::list<QPoint> &_node, int _route)                   //获取节点list储存到数组
 {
     if(0 == _node.size())
     {
-        qDebug() << "NULL ...";
+        emit signal_textAppend("无法找到有效路径，请检查设备位置");
         return;
     }
     QPoint node_buf;
@@ -330,14 +386,14 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd
     QPoint currentPoint;
     node.pop_back();                                                                           //去掉寻路第一个重复的节点
     node.push_back(nodeParent*10);
-    route = _route;
+    //route = _route;
     nodeParent *= 10;
     if(_node.size() > 1)                                                                            //节点数大于1做平滑优化
     {
         for(const auto &p : _node)
         {
             currentPoint = p*10;
-            if(intersect(nodeParent, currentPoint, areaPoint))
+            if(intersect(nodeParent, currentPoint))
             {
                 node.push_back(laterPoint);
                 nodeParent = laterPoint;
@@ -356,10 +412,10 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route, bool isAddEnd
     //        qDebug() << "the nodebuf : " << node_buf.x() << ", " << node_buf.y();
         }
     }
-    if(isAddEnd && _route == -1)                                                               //完成最后一个任务，返回起点回收设备
+    if(_route == -1)                                                               //完成最后一个任务，返回起点回收设备
     {
-        node_buf.setX(start.x*10);
-        node_buf.setY(start.y*10);
+        node_buf.setX(allStart.x*10);
+        node_buf.setY(allStart.y*10);
         node.push_back(node_buf);
     }
     else                                                                                       //加终点，避免路径断裂
@@ -387,24 +443,25 @@ bool myLabel::pointAndLine(const QPoint &a, const QPoint &b, const QPoint &c, co
     return (left_right(a, b, c.x(), c.y()) ^ left_right(a, b, d.x(), d.y())) == -2;
 }
 
-bool myLabel::intersect(const QPoint &a, const QPoint &b, const vector<QPoint> &vecAreaPoint)
+bool myLabel::intersect(const QPoint &a, const QPoint &b)
 {
     int i = 0;
     bool intersect = false;
-    QPoint c(vecAreaPoint.front());
-    QPoint d(vecAreaPoint.back());
+    QPoint c(areaPoint.front());
+    QPoint d(areaPoint.back());
 
-//    for(int i = 0; i < vecAreaPoint.size(); i++)
+//    for(int i = 0; i < areaPoint.size(); i++)
 //    {
 
 //    }
-    while (!intersect && i < vecAreaPoint.size() - 2)                                                        //判断节点与多边形所有边是否相交
+    while (!intersect && i < areaPoint.size() - 2)                                                        //判断节点与多边形所有边是否相交
     {
         intersect = pointAndLine(a, b, c, d) && pointAndLine(c, d, a, b);
-        c = vecAreaPoint.at(i);
-        d = vecAreaPoint.at(i + 1);
+        c = areaPoint.at(i);
+        d = areaPoint.at(i + 1);
         i++;
     }
+    //qDebug() << "intersect : " << intersect;
 
     return intersect;
     //return pointAndLine(a, b, c, d) && pointAndLine(c, d, a, b);
@@ -433,6 +490,7 @@ void myLabel::clearArea()
     isSetEnableArea = false;
     enableArea.index = 0;
     areaPoint.clear();
+    logInPoint.clear();
     for(size_t i = 0; i < max_map_num; i++)
     {
         enableArea.x[i] = 0;                              //清除可行域数组
@@ -549,7 +607,7 @@ void myLabel::slot_load()                                           //加载数�
 
 void myLabel::slot_save()                                                           //保存数据槽函数
 {
-    QFile file("data.json");
+    QFile file("data.json");                                                        //保存任务数据
     QJsonArray jsonArr;
     QJsonObject jsonObj;
     QJsonObject startObj;
@@ -575,11 +633,12 @@ void myLabel::slot_save()                                                       
     file.write(byteArr);
     file.close();
 
-    QFile areaFile("area.json");
+    QFile areaFile("area.json");                                                        //保存区域数据
     QJsonArray jsonAreaArr;
     QJsonObject jsonAreaObj;
     QJsonDocument jsonAreaDoc;
-    for(int i = 0; i < enableArea.index; i++)
+    int i = 0;
+    for(i = 0; i < enableArea.index; i++)
     {
         jsonAreaObj.insert("x", enableArea.x[i]);
         jsonAreaObj.insert("y", enableArea.y[i]);
@@ -590,7 +649,67 @@ void myLabel::slot_save()                                                       
     areaFile.open(QIODevice::WriteOnly | QIODevice::Text);
     areaFile.write(byteAreaArr);
     areaFile.close();
+
+    QFile landFile("land.json");                                                        //保存登陆点数据
+    QJsonArray jsonLandArr;
+    QJsonObject jsonLandObj;
+    QJsonDocument jsonLandDoc;
+    for(int i = 0; i < logInPoint.size(); i++)
+    {
+        jsonLandObj.insert("x", logInPoint.at(i).x);
+        jsonLandObj.insert("y", logInPoint.at(i).y);
+        jsonLandObj.insert("vertical", logInPoint.at(i).vertical);
+        jsonLandArr.insert(i, jsonLandObj);
+    }
+    jsonLandDoc.setArray(jsonLandArr);
+    QByteArray byteLandArr = jsonLandDoc.toJson(QJsonDocument::Compact);
+    landFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    landFile.write(byteLandArr);
+    landFile.close();
     emit signal_textAppend("保存成功!");
+}
+
+void myLabel::loadLandPoint()
+{
+    QFile file("land.json");
+    QJsonValue jsonVal;
+    QJsonArray jsonArr;
+    QJsonObject jsonObj;
+    QJsonDocument parse;
+    QJsonParseError eor;
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if(file.isOpen())
+    {
+        QByteArray byteArr = file.readAll();
+        file.close();
+        parse = QJsonDocument::fromJson(byteArr, &eor);
+        if(eor.error == QJsonParseError::NoError)
+        {
+            jsonArr = parse.array();
+            int landPointSize = jsonArr.size();
+            for(int i = 0; i < landPointSize; i++)
+            {
+                jsonVal = jsonArr.at(i);
+                jsonObj = jsonVal.toObject();
+                int x = jsonObj.take("x").toInt();
+                int y = jsonObj.take("y").toInt();
+                bool vert = jsonObj.take("vertical").toBool();
+                APoint buf(x, y, vert);
+                logInPoint.push_back(buf);
+            }
+            model = 4;
+        }
+        else
+        {
+            emit signal_textAppend("读取失败，数据文件格式错误!");
+            return;
+        }
+    }
+    else
+    {
+        emit signal_textAppend("数据文件丢失!");
+        return;
+    }
 }
 
 void myLabel::loadEnableArea()
@@ -638,6 +757,19 @@ void myLabel::loadEnableArea()
         return;
     }
 }
+void myLabel::clearNode()
+{
+    //route = 0;
+    landAfterIndex = 0;
+    node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
+    node.clear();                                           //初始化节点向量
+    node.push_back(QPoint());
+    work_finish = false;
+    isCreatePath = false;
+
+//    node.clear();
+//    node.push_back(QPoint());
+}
 //接口
 void myLabel::setStopCalc(const bool &statu)
 {
@@ -661,17 +793,9 @@ std::vector<QPoint> myLabel::get_vector_node()
 //    }
 }
 
-void myLabel::clearNode()
+void myLabel::addlandAfter(const int &_landAfter)
 {
-    route = 0;
-    node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
-    node.clear();                                           //初始化节点向量
-    node.push_back(QPoint());
-    work_finish = false;
-    isCreatePath = false;
-
-//    node.clear();
-//    node.push_back(QPoint());
+    landAfter.push_back(_landAfter);
 }
 
 void myLabel::setInArea(bool _inArea)
@@ -735,11 +859,25 @@ AAPOINT* myLabel::sendPoint()                                                   
 //    }
 //    return &tempPoint;
 //}
-
-int myLabel::settest(int _test)
+void myLabel::setLanding(const bool &flag)
 {
-    test = _test;
-    return end.at(test).taskContantIndex;
+    isLandingPoint = flag;
+}
+
+void myLabel::setIsVertical(const bool &res)
+{
+    isVertical = res;
+}
+
+void myLabel::setlandIndex(const uchar &idx)
+{
+    landIndex = idx;
+}
+
+int myLabel::setNowIndex(int _test)
+{
+    nowIndex = _test;
+    return end.at(nowIndex).taskContantIndex;
 }
 
 size_t myLabel::taskSize() const

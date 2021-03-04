@@ -7,6 +7,7 @@ MYBTN::MYBTN(QWidget *parent) : QPushButton(parent)
 {
     this->setFocusPolicy(Qt::NoFocus);
     connect(this, &QPushButton::clicked, this, &MYBTN::click_zoom);
+    //connect(this, &MYBTN::clicked, this, &MYBTN::slot_delay);
 }
 
 void MYBTN::display(QPixmap &pix)
@@ -48,6 +49,13 @@ void MYBTN::click_zoom()
     zoom_down();
     zoom_rise();
 }
+
+//void MYBTN::slot_delay()
+//{
+//    QTimer::singleShot(200, [=](){
+//        emit this->released();
+//    });
+//}
 
 void MYBTN::keyPress()
 {

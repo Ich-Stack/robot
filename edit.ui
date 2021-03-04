@@ -324,6 +324,11 @@ background-color: rgb(240, 242, 250);</string>
       <string>救援</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>登陆</string>
+     </property>
+    </item>
    </widget>
    <widget class="QWidget" name="widget" native="true">
     <property name="geometry">

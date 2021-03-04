@@ -18,14 +18,32 @@ struct APoint
     int x, y; //点坐标，这里为了方便按照C++的数组来计算，x代表横排，y代表竖列
     int F, G, H; //F=G+H
     int taskContantIndex;
+    bool vertical;
+    uchar states;
     double omega;
+    enum state
+    {
+        none = 0,
+        left2Right = 1,
+        right2Left = 2,
+        top2Button = 3,
+        button2Top = 4
+
+    };
     APoint* parent; //parent的坐标，这里没有用指针，从而简化代码
-    APoint(int _x, int _y, double _omega, int _taskContantIndex) :x(_x), y(_y), omega(_omega), taskContantIndex(_taskContantIndex), F(0), G(0), H(0), parent(NULL){}//变量初始化
-    APoint(int _x, int _y) :x(_x), y(_y), omega(1), taskContantIndex(0), F(0), G(0), H(0), parent(NULL){}//变量初始化
-    APoint():x(0), y(0), F(0), G(0), H(0), omega(1), taskContantIndex(0), parent(NULL){}
+    APoint(int _x, int _y, double _omega, int _taskContantIndex) :x(_x), y(_y), omega(_omega), taskContantIndex(_taskContantIndex), F(0), G(0), H(0), vertical(false), states(0), parent(NULL){}//变量初始化
+    APoint(int _x, int _y) :x(_x), y(_y), omega(1), taskContantIndex(0), F(0), G(0), H(0), vertical(false), states(0), parent(NULL){}//变量初始化
+    APoint(int _x, int _y, bool _vertical) :x(_x), y(_y), omega(1), taskContantIndex(0), F(0), G(0), H(0), vertical(_vertical), states(0), parent(NULL){}//变量初始化
+    APoint():x(0), y(0), F(0), G(0), H(0), omega(1), taskContantIndex(0), vertical(false), states(0), parent(NULL){}
     bool operator ==(const APoint &rp) const
     {
         return !((x ^ rp.x) || (y ^ rp.y));
+    }
+    APoint operator /(const int &divisor)
+    {
+        this->x /= divisor;
+        this->y /= divisor;
+        return *this;
     }
     QPoint toQPoint() const
     {
@@ -44,7 +62,8 @@ private:
     APoint* findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner);
     std::vector<APoint*> getSurroundPoints(const APoint* point, bool isIgnoreCorner) const;
     bool isCanreach(const APoint* point, const APoint* target, bool isIgnoreCorner) const; //判断某点是否可以用于下一步判断
-    APoint* isInList(const std::list<APoint*>& list, const APoint* point) const; //判断开启/关闭列表中是否包含某点
+    APoint* isInOpenList(const APoint* point) const; //判断开启
+    APoint* isInCloseList(const APoint* point) const; //关闭列表中是否包含某点
     APoint* getLeastFpoint(); //从开启列表中返回F值最小的节点
     //计算FGH值
     int calcG(APoint* temp_start, APoint* point);
@@ -54,6 +73,7 @@ private:
     //const std::list<APoint*> floyd(const std::list<APoint*> &path);
     const double calcSlope(const APoint &a, const APoint &b);                        //计算斜率函数
 private:
+    APoint* pointList;                                                             //用于起点与终点相同
     const unsigned char max_map_num = 60;
     //MinHeap<APoint*> *minheap_openlist;                                         //二元堆对象
     std::vector<std::vector<bool>> maze;

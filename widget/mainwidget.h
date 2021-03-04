@@ -9,8 +9,8 @@
 #include <QJsonDocument>
 #include <QApplication>
 #include <QMediaPlayer>
-#include <QWebChannel>
 #include <QMessageBox>
+#include <QWebChannel>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
@@ -75,6 +75,8 @@ public slots:
     void area_GPS();
     void slot_createFinish(const QString text);
     void slot_textAppend(const QString &str);
+    void slot_landing();
+    void slot_landed();
 
 private slots:
     int find_taskName(int code);
@@ -93,7 +95,6 @@ private slots:
     void on_btn_contral_clicked();
     void on_btn_video_clicked();
     void on_btn_run_clicked();
-    void on_btn_back_clicked();
     
 signals:
     void init_close();
@@ -122,9 +123,13 @@ private:
     QString m_taskName = 0;
     QString m_taskLevel = 0;
     void dowork(int _contIndex);
+    int calcW(const int &G, const int &omega);
+    void searchPath();
+    APoint getMinLand(const APoint &cur);
     void slot_createAuto();
     void slot_createSet();
     void slot_load();
+    void slot_comeBack();
 //----------------------------------------------------------------
     //手动设置路径部分
     double m_setPathPointLng[50];                       //手动路径点经度数组
@@ -152,6 +157,7 @@ private:
     bool input = false;
     QString enstrData = NULL;
     void disposeData();
+    void waterDispose();
     //friend void sendData(MainWidget *e);
 //-----------------------------------------------------------------
     //UWB部分

@@ -44,5 +44,6 @@
         <file>picture/btn_load.png</file>
         <file>picture/btn_save.png</file>
         <file>picture/btn_set.png</file>
+        <file>picture/btn_detection.png</file>
     </qresource>
 </RCC>

@@ -76,9 +76,11 @@ APoint* ASTAR::getLeastFpoint()
 
 APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner)
 {
+    openList.clear();
+    closeList.clear();
     if(startPoint == endPoint)                                      //起点与终点相同，返回NULL（原代码bug）
     {
-        APoint* pointList = &startPoint;
+        pointList = &startPoint;
         pointList->parent = NULL;
         return pointList;
     }
@@ -95,7 +97,7 @@ APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorne
             for (auto& target : surroundPoints)
             {
                 //对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
-                if (!isInList(openList, target))
+                if (!isInOpenList(target))
                 {
                     target->parent = curPoint;
 
@@ -117,9 +119,11 @@ APoint* ASTAR::findPath(APoint& startPoint, APoint& endPoint, bool isIgnoreCorne
                         target->F = calcF(target);
                     }
                 }
-                APoint* resPoint = isInList(openList, &endPoint);
+                APoint* resPoint = isInOpenList(&endPoint);
                 if (resPoint != NULL)
+                {
                     return resPoint; //返回列表里的节点指针，不要用原来传入的endpoint指针，因为发生了深拷贝
+                }
             }
         }
         return NULL;
@@ -131,7 +135,6 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
     APoint* result = findPath(startPoint, endPoint, isIgnoreCorner);
     if (result == NULL)                                                                             //道路封闭，寻找不到路
     {
-        qDebug() << "result is NULL ...";
         std::list<QPoint> none;
         openList.clear();
         closeList.clear();
@@ -145,7 +148,6 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
     path.push_front(result->toQPoint());                                                     //加入第一个节点，因为计算从第二个节点开始
     if(result->parent == NULL)                                                               //起点与终点相同，返回当前点
     {
-        qDebug() << "result's parent is NULL ...";
         path.push_front(result->toQPoint());                                                 //避免直接发送第二个坐标点
         openList.clear();
         closeList.clear();
@@ -180,10 +182,18 @@ std::list<QPoint> ASTAR::GetPath(APoint &startPoint, APoint &endPoint, bool isIg
     return path;
 }
 
-APoint* ASTAR::isInList(const std::list<APoint*>& list, const APoint* point) const
+APoint* ASTAR::isInOpenList(const APoint* point) const
 {
     //判断某个节点是否在列表中，这里不能比较指针，因为每次加入列表是新开辟的节点，只能比较坐标
-    for (const auto p : list)
+    for (const auto &p : openList)
+        if (p->x == point->x && p->y == point->y)
+            return p;
+    return NULL;
+}
+
+APoint* ASTAR::isInCloseList(const APoint* point) const
+{
+    for (const auto &p : closeList)
         if (p->x == point->x && p->y == point->y)
             return p;
     return NULL;
@@ -191,11 +201,11 @@ APoint* ASTAR::isInList(const std::list<APoint*>& list, const APoint* point) con
 
 bool ASTAR::isCanreach(const APoint* point, const APoint* target, bool isIgnoreCorner) const
 {
-    if (target->x<0 || (unsigned long)target->x>maze.size() - 1
-        || target->y<0 || (unsigned long)target->y>maze[0].size() - 1
+    if (target->x<0 || target->x>maze.size() - 1
+        || target->y<0 || target->y>maze[0].size() - 1
         || maze[target->y][target->x] == true
         || (target->x == point->x && target->y == point->y)
-        || isInList(closeList, target)) //如果点与当前节点重合、超出地图、是障碍物、或者在关闭列表中，返回false
+        || isInCloseList(target)) //如果点与当前节点重合、超出地图、是障碍物、或者在关闭列表中，返回false
         return false;
     else
     {
@@ -227,6 +237,10 @@ std::vector<APoint*> ASTAR::getSurroundPoints(const APoint* point, bool isIgnore
 
 int ASTAR::getG(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner)
 {
+    if(startPoint == endPoint)
+    {
+        return 0;
+    }
     openList.clear();                                       //清空列表，不然只能寻找一次路径
     closeList.clear();
     openList.push_back(new APoint(startPoint.x, startPoint.y)); //置入起点,拷贝开辟一个节点，内外隔离
@@ -240,7 +254,7 @@ int ASTAR::getG(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner)
         for (auto& target : surroundPoints)
         {
             //对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
-            if (!isInList(openList, target))
+            if (!isInOpenList(target))
             {
                 target->parent = curPoint;
                 target->G = calcG(curPoint, target);
@@ -259,14 +273,15 @@ int ASTAR::getG(APoint& startPoint, APoint& endPoint, bool isIgnoreCorner)
                     target->F = calcF(target);
                 }
             }
-            APoint* resPoint = isInList(openList, &endPoint);
+            APoint* resPoint = isInOpenList(&endPoint);
             if (resPoint)
             {
+                //qDebug() << endPoint.x << ", " << endPoint.y;
                 return target->G;
             }
         }
     }
-    return NULL;
+    return 0;
 }
 
 const double ASTAR::calcSlope(const APoint &a, const APoint &b)                                //计算斜率函数
