@@ -277,7 +277,7 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
                 node_index++;
             }
 
-            if(nowIndex == landAfter.at(landAfterIndex))        //判断下终点点是否需要经过登陆点
+            if(nowIndex == landAfter.at(landAfterIndex))        //判断下个终点是否需要经过登陆点
             {
                 double land_dis = pow(x - logInPoint.at(landIndex).x, 2) + pow(y - logInPoint.at(landIndex).y/ratio, 2);//计算距离
                 if(land_dis < 3000)                 //登陆模式结束

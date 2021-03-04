@@ -42,6 +42,13 @@ struct taskNameAndCode{
     QString name;
 };
 
+struct APointPuls
+{
+    uchar route;
+    APoint logPoint;
+    APointPuls(const uchar &_route, const APoint &_logPoint) : route(_route), logPoint(_logPoint) {}
+};
+
 //struct Node
 //{
 //public:
@@ -125,11 +132,14 @@ private:
     void dowork(int _contIndex);
     int calcW(const int &G, const int &omega);
     void searchPath();
-    APoint getMinLand(const APoint &cur);
+    std::vector<APointPuls> searchPathSupplement();
+    uchar getContainNum(const APoint &start, const APoint &end, const bool &vert);
+    APoint getMinLand(const APoint &start, const APoint &end, const bool &vert);
     void slot_createAuto();
     void slot_createSet();
     void slot_load();
     void slot_comeBack();
+    bool calcVector(const APoint &start, const APoint &end);
 //----------------------------------------------------------------
     //手动设置路径部分
     double m_setPathPointLng[50];                       //手动路径点经度数组

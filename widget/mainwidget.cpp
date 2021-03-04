@@ -1420,19 +1420,62 @@ int MainWidget::calcW(const int &G, const int &omega)        //最大长度4500�
     }
 }
 
+//void MainWidget::searchPath()
+//{
+//    uchar route = path.route[0];
+//    APoint start = ui->label_UWB->start;                                        //相对起点
+//    APoint end = ui->label_UWB->end.at(route);                                  //相对终点
+//    QPoint qStart = start.toQPoint()*10;                                        //转QPoint用于与多边形相交判断
+//    QPoint qEnd = end.toQPoint()*10;
+//    bool intersect = ui->label_UWB->intersect(qStart, qEnd);
+//    size_t landPointSize = ui->label_UWB->logInPoint.size();
+//    if(intersect && landPointSize)                                              //相交并且设有登陆点
+//    {
+//        APoint minLand = getMinLand(start)/10;                                  //找离相对起点最近的登陆点
+//        ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), -2);     //相对起点去登陆台
+//        ui->label_UWB->get_Node(astar->GetPath(minLand, end, false), route);
+//        ui->label_UWB->addlandAfter(route);
+//    }
+//    else
+//    {
+//        ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);      //A*寻路获取节点
+//    }
+
+//    for(int i = 0; i < _nodeNum - 1; i++)
+//    {
+//        route = path.route[i+1];
+//        start = ui->label_UWB->end.at(path.route[i]);
+//        end = ui->label_UWB->end.at(path.route[i+1]);
+//        qStart = start.toQPoint()*10;
+//        qEnd = end.toQPoint()*10;
+//        intersect = ui->label_UWB->intersect(qStart, qEnd);
+//        if(intersect && landPointSize)
+//        {
+//            APoint minLand = getMinLand(start)/10;
+//            ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), route);
+//            ui->label_UWB->get_Node(astar->GetPath(minLand, end, false), route);
+//            ui->label_UWB->addlandAfter(route);
+//        }
+//        else
+//        {
+//            ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+//        }
+//    }
+//}
+
 void MainWidget::searchPath()
 {
     uchar route = path.route[0];
-    APoint start = ui->label_UWB->start;
-    APoint end = ui->label_UWB->end.at(route);
-    QPoint qStart = start.toQPoint()*10;
+    APoint start = ui->label_UWB->start;                                        //相对起点
+    APoint end = ui->label_UWB->end.at(route);                                  //相对终点
+    QPoint qStart = start.toQPoint()*10;                                        //转QPoint用于与多边形相交判断
     QPoint qEnd = end.toQPoint()*10;
     bool intersect = ui->label_UWB->intersect(qStart, qEnd);
     size_t landPointSize = ui->label_UWB->logInPoint.size();
-    if(intersect && landPointSize)
+    if(intersect && landPointSize)                                              //相交并且设有登陆点
     {
-        APoint minLand = getMinLand(start)/10;
-        ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), -2);
+        APoint minLand = getMinLand(start)/10;                                  //找离相对起点最近的登陆点
+        ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), -2);     //相对起点去登陆台
         ui->label_UWB->get_Node(astar->GetPath(minLand, end, false), route);
         ui->label_UWB->addlandAfter(route);
     }
@@ -1463,24 +1506,175 @@ void MainWidget::searchPath()
     }
 }
 
-APoint MainWidget::getMinLand(const APoint &cur)
+std::vector<APointPuls> MainWidget::searchPathSupplement()
 {
+    uchar route = path.route[0];
+    APoint start = ui->label_UWB->start;                                        //相对起点
+    APoint end = ui->label_UWB->end.at(route);                                  //相对终点
+    QPoint qStart = start.toQPoint()*10;                                        //转QPoint用于与多边形相交判断
+    QPoint qEnd = end.toQPoint()*10;
+    //APointPuls lastPush;
+    std::vector<APointPuls> res;
+    std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
+    //size_t logPointSize = logPoint.size();
+    bool vertical = calcVector(start, end);
+    bool intersect = ui->label_UWB->intersect(qStart, qEnd);
+    uchar num = getContainNum(start, end, vertical);
+    APoint minLog;
+    APointPuls temp;
+
+    if(intersect || num > 1)                                                    //两点连线与区域相交或者两点间有两个登陆点，直接保存登陆点与终点
+    {
+        minLog = getMinLand(start, end, vertical);
+        temp = APointPuls(route, minLog);
+        res.push_back(temp);
+    }
+    else if(num == 1)
+    {
+        minLog = getMinLand(start, end, vertical);
+        route = 60;                                                             //60代表起点
+    }
+
+    for(int i = 0; i < _nodeNum - 1; i++)
+    {
+        start = ui->label_UWB->end.at(path.route[i]);
+        end = ui->label_UWB->end.at(path.route[i+1]);
+        qStart = start.toQPoint()*10;
+        qEnd = end.toQPoint()*10;
+        vertical = calcVector(start, end);
+        intersect = ui->label_UWB->intersect(qStart, qEnd);
+        num = getContainNum(start, end, vertical);
+
+        if(intersect || num > 1)                                                    //两点连线与区域相交或者两点间有两个登陆点，直接保存登陆点与终点
+        {
+            minLog = getMinLand(start, end, vertical);
+            temp = APointPuls(route, minLog);
+            res.push_back(temp);
+        }
+        else if(num == 1)
+        {
+            minLog = getMinLand(start, end, vertical);
+            route = path.route[i+1];                                                             //60代表起点
+        }
+    }
+    temp = APointPuls(route, minLog);
+    res.push_back(temp);
+    return res;
+}
+
+uchar MainWidget::getContainNum(const APoint &start, const APoint &end, const bool vert)            //计算两点间登陆点个数函数
+{
+    uchar times = 0;
+    std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
+    for(const auto &p : logPoint)
+    {
+        if(vert)
+        {
+            if(p.vertical && start.y < p.y && p.y < end.y)
+            {
+                times++;
+            }
+        }
+        else
+        {
+            if(!p.vertical && start.x < p.x && p.x < end.x)
+            {
+                times++;
+            }
+        }
+    }
+    return times;
+}
+
+bool MainWidget::calcVector(const APoint &start, const APoint &end)
+{
+    int dx = end.x - start.x;
+    int dy = end.y - start.y;
+    int res = abs(dy) - abs(dx);
+    if(res)
+    {
+        true;           //y距离大于x距离，判断为垂直走向
+    }
+    else
+    {
+        false;           //x距离大于y距离，判断为水平走向
+    }
+}
+
+APoint MainWidget::getMinLand(const APoint &start, const APoint &end, const bool &vert)
+{
+//    uint minDis = 1e5;
+//    APoint res;
+//    for(int i = 0; i < ui->label_UWB->logInPoint.size(); i++)
+//    {
+//        uint x = abs(ui->label_UWB->logInPoint.at(i).x - cur.x);
+//        uint y = abs(ui->label_UWB->logInPoint.at(i).y - cur.y);
+//        uint total = x + y;
+//        if(total < minDis)
+//        {
+//            minDis = total;
+//            res = ui->label_UWB->logInPoint.at(i);
+//            ui->label_UWB->setlandIndex(i);
+//        }
+//    }
+//    return res;
+    uint x = 0;
+    uint y = 0;
     uint minDis = 1e5;
     APoint res;
-    for(int i = 0; i < ui->label_UWB->logInPoint.size(); i++)
+    std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
+    for(const auto &p : logPoint)
     {
-        uint x = abs(ui->label_UWB->logInPoint.at(i).x - cur.x);
-        uint y = abs(ui->label_UWB->logInPoint.at(i).y - cur.y);
-        uint total = x + y;
-        if(total < minDis)
+        if(vert)
         {
-            minDis = total;
-            res = ui->label_UWB->logInPoint.at(i);
-            ui->label_UWB->setlandIndex(i);
+            if(p.vertical && start.y < p.y && p.y < end.y)
+            {
+                x = abs(start.x - p.x);
+                y = abs(start.y - p.y);
+                uint total = x + y;
+                if(total < minDis)
+                {
+                    minDis = total;
+                    res = p;
+                }
+            }
+        }
+        else
+        {
+            if(!p.vertical && start.x < p.x && p.x < end.x)
+            {
+                x = abs(start.x - p.x);
+                y = abs(start.y - p.y);
+                uint total = x + y;
+                if(total < minDis)
+                {
+                    minDis = total;
+                    res = p;
+                }
+            }
         }
     }
     return res;
 }
+
+//APoint MainWidget::getMinLand(const APoint &cur)
+//{
+//    uint minDis = 1e5;
+//    APoint res;
+//    for(int i = 0; i < ui->label_UWB->logInPoint.size(); i++)
+//    {
+//        uint x = abs(ui->label_UWB->logInPoint.at(i).x - cur.x);
+//        uint y = abs(ui->label_UWB->logInPoint.at(i).y - cur.y);
+//        uint total = x + y;
+//        if(total < minDis)
+//        {
+//            minDis = total;
+//            res = ui->label_UWB->logInPoint.at(i);
+//            ui->label_UWB->setlandIndex(i);
+//        }
+//    }
+//    return res;
+//}
 
 void MainWidget::slot_landing()                                         //准备登陆槽函数
 {
