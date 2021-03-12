@@ -21,6 +21,8 @@ public:
     void setIsClick(bool isclose);                             //关闭串口设置isclick为false
     bool getIsClick();
     double getRatio() const;
+    uint getArriveDis();
+    uint getLandingDis();
 
 private slots:
     void on_btn_ok_clicked();

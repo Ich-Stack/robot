@@ -862,7 +862,7 @@ QLabel{color: rgb(124, 124, 124)}
     <widget class="QLineEdit" name="lineEdit_oxygen">
      <property name="geometry">
       <rect>
-       <x>345</x>
+       <x>340</x>
        <y>43</y>
        <width>90</width>
        <height>30</height>

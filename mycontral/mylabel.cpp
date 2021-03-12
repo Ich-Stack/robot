@@ -50,6 +50,7 @@ myLabel::myLabel(QWidget *parent) : QLabel(parent)
     logInPoint.clear();
     loadEnableArea();                                               //打开加载可行域
     loadLandPoint();
+    //loadAreaA();
 }
 
 void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠标事件
@@ -94,6 +95,11 @@ void myLabel::mouseReleaseEvent(QMouseEvent *ev)                    //重写鼠�
 //                end[UWBTaskIndex] = APoint(ev->x()/10, ev->y()/10);//--------------------------------------------------------------------------------
 //                end[UWBTaskIndex].omega = omega;
 //                end[UWBTaskIndex].taskContantIndex = contIndex;                                 //任务要求索引
+//                uchar inarea = 0;
+//                if(inA(ev->x(), ev->y()))
+//                {
+//                    inarea = Area::A;
+//                }
                 end.push_back(APoint(ev->x()/10, ev->y()/10, omega, contIndex));
                 UWBTaskIndex++;
                 emit isAddPoint();
@@ -177,7 +183,7 @@ void myLabel::paintEvent(QPaintEvent * event)                       //绘图事�
         if(point.x[0] && point.y[0])                                                        //设备坐标与地点坐标距离少于10cm判断到达
         {
             double dis = pow(point.x[pointI] - _x, 2) + pow((point.y[pointI] - _y)/ratio, 2);      //计算手动路径下的目标点距离，y方向按比例缩小
-            if(dis < 3000)//3000
+            if(dis < arriveDis)//3000
             {
                 if(AckNum < point.index)
                 {
@@ -246,8 +252,8 @@ void myLabel::clearSetPath()                                                    
 
 void myLabel::getCurrent(double x, double y)                      //获取myLabel发送的数据
 {
-    _x = x;
-    _y = y;
+    _x = static_cast<int>((x + 10) / 20) * 20;
+    _y = static_cast<int>((y + 10) / 20) * 20;
     inArea = pnpoly(enableArea.index, enableArea.x, enableArea.y, x, y);
 //    if(isSetPoint && initIsTimeout && inArea)                      //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
     if(!isCreatePath && inArea)                                      //超过3s的初始化时间并且设置了目标点，记录当前坐标为出发点
@@ -262,51 +268,71 @@ void myLabel::getCurrent(double x, double y)                      //获取myLabe
             allFirst = false;
         }
     }
-    if(stopCalc)
-    {
-        return;
-    }
-    if(isCreatePath)//taskModel && isSetPoint &&
+    if(end.size())
     {
         double end_dis = pow(x - end.at(nowIndex).x*10, 2) + pow((y - end.at(nowIndex).y*10)/ratio, 2);
-        double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
-        if(node_dis < 3000)//3000           //到达节点发送下一个节点
+        if(stopCalc)
         {
-            if(node_index < node.size() - 1)
+            if(end_dis < arriveDis)
             {
-                node_index++;
+                arriveBeforeRun = true;
             }
-
-            if(nowIndex == landAfter.at(landAfterIndex))        //判断下个终点是否需要经过登陆点
+            else
+            {
+                arriveBeforeRun = false;
+            }
+            return;
+        }
+        if(isCreatePath)//taskModel && isSetPoint &&
+        {
+            double node_dis = pow(node.at(node_index).x() - x, 2) + pow((node.at(node_index).y() - y)/ratio, 2);
+            //qDebug() << "nowindex :" << nowIndex << "land :" << landAfter.at(landAfterIndex);
+            if((nowIndex == landAfter.at(landAfterIndex)) && notAllLanded)        //判断下个终点是否需要经过登陆点
             {
                 double land_dis = pow(x - logInPoint.at(landIndex).x, 2) + pow(y - logInPoint.at(landIndex).y/ratio, 2);//计算距离
-                if(land_dis < 3000)                 //登陆模式结束
+                if(land_dis < arriveDis)                 //登陆模式结束
                 {
-                    landAfterIndex++;
+                    if(landAfterIndex < landAfter.size()-1)
+                    {
+                        landAfterIndex++;
+                    }
+                    else
+                    {
+                        notAllLanded = false;
+                    }
                     emit signal_landed();
-                    return;
                 }
-                if(land_dis < 3000 && landing)      //登陆模式
+                if(land_dis < landingDis && landing)      //登陆模式
                 {
                     landing = false;
+                    QString strDis = QString("%1").arg(land_dis);
+                    emit signal_textAppend(strDis);
                     emit signal_landing();
                 }
-                return;
             }
 
-            if(end_dis < 3000)//3000                //到达坐标点发送下一个任务坐标
+            if(node_dis < arriveDis)//3000           //到达节点发送下一个节点
             {
-                //vecRemove(end.at(test));
-                _x = end.at(nowIndex).x*10;
-                _y = end.at(nowIndex).y*10;
-                QTimer::singleShot(200, [=](){emit isArrive();});                       //触发信号，产生前往下一个任务坐标的路径节点
-                //UWBTaskIndex--;
+                if(node_index < node.size() - 1)
+                {
+                    node_index++;
+                }
+
+                if(end_dis < arriveDis)//3000        //到达坐标点发送下一个任务坐标
+                {
+                    //vecRemove(end.at(test));
+                    _x = end.at(nowIndex).x*10;
+                    _y = end.at(nowIndex).y*10;
+                    emit isArrive();
+                    //QTimer::singleShot(500, [=](){emit isArrive();});                       //触发信号，产生前往下一个任务坐标的路径节点
+                    //UWBTaskIndex--;
+                }
             }
+    //        else if(star_dis < 2025)
+    //        {
+    //            emit abnormal();
+    //        }
         }
-//        else if(star_dis < 2025)
-//        {
-//            emit abnormal();
-//        }
     }
 }
 
@@ -356,10 +382,12 @@ void myLabel::clearTaskModel()                                   //清空enableA
     node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
     UWBTaskIndex = 0;
     landAfterIndex = 0;
+    landAfter.clear();
     node.clear();                                           //初始化节点向量
     node.push_back(QPoint());
     work_finish = false;
     isCreatePath = false;
+    notAllLanded = true;
     end.clear();
     for(int i = 0; i < MAX_CITY_NUM; i++)
     {
@@ -380,6 +408,7 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route)              
         emit signal_textAppend("无法找到有效路径，请检查设备位置");
         return;
     }
+    uchar idx = 0;
     QPoint node_buf;
     QPoint nodeParent = _node.front();
     QPoint laterPoint;
@@ -417,6 +446,16 @@ void myLabel::get_Node(const std::list<QPoint> &_node, int _route)              
         node_buf.setX(allStart.x*10);
         node_buf.setY(allStart.y*10);
         node.push_back(node_buf);
+    }
+    else if(_route == -2)
+    {
+        node_buf.setX(logInPoint.at(idx).x);
+        node_buf.setY(logInPoint.at(idx).y);
+        node.push_back(node_buf);
+        if(idx < logInPoint.size())
+        {
+            idx++;
+        }
     }
     else                                                                                       //加终点，避免路径断裂
     {
@@ -757,19 +796,76 @@ void myLabel::loadEnableArea()
         return;
     }
 }
+
 void myLabel::clearNode()
 {
     //route = 0;
     landAfterIndex = 0;
+    landAfter.clear();
     node_index = 1;                                         //节点索引，0为起点，从第一个目标点开始
     node.clear();                                           //初始化节点向量
     node.push_back(QPoint());
     work_finish = false;
     isCreatePath = false;
+    notAllLanded = true;
 
 //    node.clear();
 //    node.push_back(QPoint());
 }
+
+//void myLabel::loadAreaA()
+//{
+//    QFile file("areaA.json");
+//    QJsonValue jsonVal;
+//    QJsonArray jsonArr;
+//    QJsonObject jsonObj;
+//    QJsonDocument parse;
+//    QJsonParseError eor;
+//    file.open(QIODevice::ReadOnly | QIODevice::Text);
+//    if(file.isOpen())`
+//    {
+//        QByteArray byteArr = file.readAll();
+//        file.close();
+//        parse = QJsonDocument::fromJson(byteArr, &eor);
+//        if(eor.error == QJsonParseError::NoError)
+//        {
+//            jsonArr = parse.array();
+//            enableArea.index = jsonArr.size();
+//            for(int i = 0; i < enableArea.index; i++)
+//            {
+//                jsonVal = jsonArr.at(i);
+//                jsonObj = jsonVal.toObject();
+//                int x = jsonObj.take("x").toInt();
+//                int y = jsonObj.take("y").toInt();
+//                QPoint buf(x, y);
+//                areaA.push_back(buf);
+//            }
+//        }
+//        else
+//        {
+//            emit signal_textAppend("读取失败，数据文件格式错误!");
+//            return;
+//        }
+//    }
+//    else
+//    {
+//        emit signal_textAppend("数据文件丢失!");
+//        return;
+//    }
+//}
+
+//bool myLabel::inA(const uint &_x, const uint &_y)
+//{
+//    bool xContain, yContain;
+//    if(_x > areaA.at(0).x() && _x < areaA.at(1).x())
+//        xContain = true;
+//    if(_y > areaA.at(0).y() && _y < areaA.at(1).y())
+//        yContain = true;
+//    if(xContain && yContain)
+//        return true;
+//    else
+//        return false;
+//}
 //接口
 void myLabel::setStopCalc(const bool &statu)
 {
@@ -783,6 +879,10 @@ bool myLabel::getStopCalc() const
 
 std::vector<QPoint> myLabel::get_vector_node()
 {
+//    for(const auto &p : node)
+//    {
+//        qDebug() << p.x() << ", " << p.y();
+//    }
     return node;
 
 //模拟版本
@@ -793,8 +893,19 @@ std::vector<QPoint> myLabel::get_vector_node()
 //    }
 }
 
+void myLabel::setArriveBeforeRun(const bool &res)
+{
+    arriveBeforeRun = res;
+}
+
+bool myLabel::getArriveBeforeRun()
+{
+    return arriveBeforeRun;
+}
+
 void myLabel::addlandAfter(const int &_landAfter)
 {
+    //qDebug() << _landAfter;
     landAfter.push_back(_landAfter);
 }
 
@@ -859,7 +970,21 @@ AAPOINT* myLabel::sendPoint()                                                   
 //    }
 //    return &tempPoint;
 //}
+void myLabel::setLandingDis(const uint &dis)
+{
+    landingDis = dis;
+}
+
+void myLabel::setArriveDis(const uint &dis)
+{
+    arriveDis = dis;
+}
+
 void myLabel::setLanding(const bool &flag)
+{
+    landing = flag;
+}
+void myLabel::setLandingPoint(const bool &flag)
 {
     isLandingPoint = flag;
 }

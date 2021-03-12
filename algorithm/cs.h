@@ -17,20 +17,20 @@
 struct PATH{
     int code[MAX_CITY_NUM];
     int route[MAX_CITY_NUM];
-    int dis_alone[MAX_CITY_NUM];
+    //int dis_alone[MAX_CITY_NUM];
     int dis;
     PATH() : dis(0)
     {
         memset(code, 0, sizeof(int)*MAX_CITY_NUM);
         memset(route, 0, sizeof(int)*MAX_CITY_NUM);
-        memset(dis_alone, 0, sizeof(int)*MAX_CITY_NUM);
+        //memset(dis_alone, 0, sizeof(int)*MAX_CITY_NUM);
     }
     void clear()
     {
         dis = 0;
         memset(code, 0, sizeof(int)*MAX_CITY_NUM);
         memset(route, 0, sizeof(int)*MAX_CITY_NUM);
-        memset(dis_alone, 0, sizeof(int)*MAX_CITY_NUM);
+        //memset(dis_alone, 0, sizeof(int)*MAX_CITY_NUM);
     }
 };
 

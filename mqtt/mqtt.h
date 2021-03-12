@@ -4,19 +4,17 @@
 #include <QObject>
 #include <QtMqtt/qmqttclient.h>
 
-class MQTT : public QObject
+class MQTT : public QMqttClient
 {
     Q_OBJECT
 public:
-    explicit MQTT(QObject *parent = nullptr);
+    explicit MQTT(QMqttClient *parent = nullptr);
     ~MQTT();
 
     void sub(const QString &topic);
-    void receiveData(const QByteArray &message, const QMqttTopicName &topic);
 signals:
 
 private:
-    QMqttClient *m_client;
 
 };
 

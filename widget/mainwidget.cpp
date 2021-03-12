@@ -32,6 +32,9 @@ MainWidget::MainWidget(QWidget *parent):
     workTimer = new QTimer();
     channel = new QWebChannel();
     sendDataTimer = new QTimer();
+    fixP1 = new FIXWATER("65", nullptr);
+    fixP2 = new FIXWATER("66", nullptr);
+    fixP3 = new FIXWATER("96", nullptr);
     m_videowidget = new VideoWidget();    //打开视频窗口
 
     memset(m_setPathPointLng, 0.0, sizeof(double) * 50);        //初始化数组
@@ -52,7 +55,7 @@ MainWidget::MainWidget(QWidget *parent):
     ui->btn_clearTime->setNorAndPre(":/picture/btn_clear.png");
     ui->btn_monitoring->setNorAndPre(":/picture/btn_detection.png");
 
-    QString pwd = QDir::currentPath() + "/jstest2.html";
+    QString pwd = QDir::currentPath() + "/baiduMap.html";
     channel->registerObject((pwd),this);                                       //创建与JS连接的对象content
     this->ui->map_widget->page()->setWebChannel(channel);
     this->ui->map_widget->page()->load(QUrl(pwd));
@@ -70,9 +73,12 @@ MainWidget::MainWidget(QWidget *parent):
     connect(ui->label_UWB, &myLabel::signal_addLandingPoint, edit, &EDIT::close);
     connect(ui->label_UWB, &myLabel::signal_landing, this, &MainWidget::slot_landing);
     connect(ui->label_UWB, &myLabel::signal_landed, this, &MainWidget::slot_landed);
+    connect(ui->btn_monitoring, &MYBTN::clicked, this, &MainWidget::slot_fixWaterShow);
+    connect(m_client, &MQTT::messageReceived, this, &MainWidget::slot_receiveData);
 
     connect(ui->label_UWB, &myLabel::isArrive, [=](){           //每到达一个人任务点生成下一个任务坐标路径
             QString str = QString("到达第%1个任务点").arg(doworkTimes+1);
+            sendDataTimer->stop();
             ui->textEdit_total->append(str);
             nowtaski++;
             ui->lineEdit_nowTask->setText(ui->label_UWB->UWBtask[find_taskName(path.code[nowtaski])].UWBTaskName);                 //显示当前任务名称
@@ -307,6 +313,7 @@ MainWidget::MainWidget(QWidget *parent):
         //abnormal = true;                                                            //abnormal为true，senddatatimer发送起点坐标
         m_isStartUp = true;
         workTimer->stop();                                                          //任务倒计时定时器关闭
+        ui->label_UWB->setStopCalc(false);
         timer_speedStop->start(1000);               //减速/加速定时器开
 
         //ui->textEdit_total->append("任务超时 ...\n将回收设备 ...");
@@ -316,7 +323,9 @@ MainWidget::MainWidget(QWidget *parent):
         {
             QByteArray arr("@M100 S\r\n");
             char *ch = arr.data();
-            m_spcomm->writeData(ch, arr.size());
+            m_spcomm->writeData(ch, arr.length());
+
+            QTimer::singleShot(300, [=](){m_spcomm->writeData(ch, arr.length());});
 
             ui->textEdit_total->append("已经顺利完成所有任务！");
             on_btn_run_clicked();
@@ -327,6 +336,8 @@ MainWidget::MainWidget(QWidget *parent):
             m_isStartUp = false;
             return;
         }
+        ui->label_UWB->setArriveBeforeRun(false);
+        ui->label_UWB->setEnabled(false);
         contIndex = ui->label_UWB->setNowIndex(path.route[nowtaski]);
         sendDataTimer->start(300);                                                  //发送坐标定时器开
     });
@@ -420,7 +431,7 @@ void MainWidget::btn_addTaskCoor_slot()
         {
             ui->label_UWB->setIsVertical(true);
         }
-        ui->label_UWB->setLanding(true);
+        ui->label_UWB->setLandingPoint(true);
         ui->label_UWB->model = 3;
         this->activateWindow();                         //效率会比edit->close高
         return;
@@ -449,10 +460,10 @@ void MainWidget::btn_addTaskCoor_slot()
                 m_taskName = edit->LineEdit_taskname_text();         //获取任务名称
                 m_taskCode = edit->LineEdit_taskcode_text();         //获取任务代号
 
-                QString sendTaskName = QString("receiveTaskLabelName(%1)").arg(m_taskCode.toInt());     //将任务代号发送给JS
-                ui->map_widget->page()->runJavaScript(sendTaskName);
-                QString command = QString("addTaskCoorBtn()");
-                ui->map_widget->page()->runJavaScript(command);      //调用JS中的addTaskCoorBtn()函数
+//                QString sendTaskName = QString("receiveTaskLabelName(%1)").arg(m_taskCode.toInt());     //将任务代号发送给JS
+//                ui->map_widget->page()->runJavaScript(sendTaskName);
+//                QString command = QString("addTaskCoorBtn()");
+//                ui->map_widget->page()->runJavaScript(command);      //调用JS中的addTaskCoorBtn()函数
                 m_isAddTaskCoor = true;
             }
             else if(m_isAddTaskCoor == true)                            //多次点击添加坐标提示用户
@@ -510,8 +521,8 @@ void MainWidget::on_btn_clearTask_clicked()
         ui->lineEdit_distant->clear();
         memset(m_setPathPointLng, 0.0, sizeof(double) * 50);    //清空手动设置路径数组
         memset(m_setPathPointLat, 0.0, sizeof(double) * 50);
-        QString command = QString("remove_overlay()");           //调用JS函数，清楚覆盖物
-        ui->map_widget->page()->runJavaScript(command);
+//        QString command = QString("remove_overlay()");           //调用JS函数，清楚覆盖物
+//        ui->map_widget->page()->runJavaScript(command);
         for(int i = 0; i < 60; i++)         //清空任务名称，代号数组
         {
             task[i].name.clear();
@@ -726,6 +737,10 @@ void MainWidget::on_btn_opencpm_clicked()
                     if(m_spcomm->open())
                     {
                         m_spcomm->isOpen = true;
+                        uint arriveDis = dialog->getArriveDis();
+                        uint landingDis = dialog->getLandingDis();
+                        ui->label_UWB->setLandingDis(landingDis);       //设置登陆点判断距离
+                        ui->label_UWB->setArriveDis(arriveDis);         //设置目标点到达距离
                         ui->label_UWB->setRatio(dialog->getRatio());    //设置补偿倍数
                         ui->label_UWB->timer->start(500);
                         ui->label_UWB->initTimeout->start(3000);        //初始化3s的定时器
@@ -823,14 +838,14 @@ void MainWidget::disposeData()//------------------------------------------------
     double _x = x.toDouble()*600/dialog->getLength();
     double _y = y.toDouble()*600/dialog->getWidth();
 
-    int ix = static_cast<int>((_x + 5) / 10) * 10;
-    int iy = static_cast<int>((_y + 5) / 10) * 10;
-    cur = APoint(ix, iy);
+    //int ix = static_cast<int>((_x + 10) / 20) * 20;
+    //int iy = static_cast<int>((_y + 10) / 20) * 20;
+    //cur = APoint(ix, iy);                                         //避障后，重新规划路径记录的起点
 
-    ui->lineEdit_currentLng_x->setText(QString::number(ix));
-    ui->lineEdit_currentLat_y->setText(QString::number(iy));
+    ui->lineEdit_currentLng_x->setText(QString::number(_x, 'f', 1));
+    ui->lineEdit_currentLat_y->setText(QString::number(_y, 'f', 1));
 
-    ui->label_UWB->getCurrent(ix, 600 - iy);                   //按照比例尺发送坐标给mylabel
+    ui->label_UWB->getCurrent(_x, 600 - _y);                        //按照比例尺发送坐标给mylabel
     enstrData.clear();
 }
 
@@ -925,10 +940,15 @@ void MainWidget::on_btn_run_clicked()
             timeIsRun = true;
             m_isRun = false;
             ui->label_UWB->setStopCalc(false);                   //开始运行使能计算
-            if(ui->radioButton_UWB->isChecked())                 //判断是否选中UWB定位方式
+            bool arriveBeforeRun = ui->label_UWB->getArriveBeforeRun();
+            if(ui->radioButton_UWB->isChecked())// && !arriveBeforeRun)    //判断是否选中UWB定位方式
             {
-                ui->label_UWB->setEnabled(false);
-                sendDataTimer->start(300);                  //打开发送坐标的定时器1s发一次数据
+                ui->label_UWB->setEnabled(false);               //开始运行，不使能label
+                QByteArray arr("@M100 A\r\n");
+                char *ch = arr.data();
+                m_spcomm->writeData(ch, arr.length());
+                workTimer->start(10000);
+                //sendDataTimer->start(300);                  //打开发送坐标的定时器1s发一次数据
             }
         }
         else if(false == m_isRun)
@@ -940,6 +960,7 @@ void MainWidget::on_btn_run_clicked()
             ui->btn_run->keyRelease();
             timer_speedStop->start(1000);
             timer_speed->stop();
+            workTimer->stop();
             timer_btnRun->stop();
             m_isStartUp = false;
             timeIsRun = false;
@@ -1014,12 +1035,11 @@ void MainWidget::btn_addTask_slot()
         {
             UWBindex++;
             m_isAddTaskCoor = false;
-            edit->close();
             edit->lineEdit_taskcode_clear();
             edit->lineEdit_taskname_clear();
-            ui->tableWidget_info->setRowCount(UWBindex);  //添加任务列表行数
+            ui->tableWidget_info->setRowCount(UWBindex);    //添加任务列表行数
             ui->label_UWB->UWBtask[UWBindex-1].UWBTaskLevel = edit->cmb_level_text();
-            for( ; m_taskI < UWBindex; m_taskI++)   //tablewidget显示
+            for( ; m_taskI < UWBindex; m_taskI++)           //tablewidget显示
             {
                 int index = 0;
                 ui->tableWidget_info->setItem(m_taskI, index++, new QTableWidgetItem(ui->label_UWB->UWBtask[UWBindex-1].UWBTaskLevel));
@@ -1029,15 +1049,17 @@ void MainWidget::btn_addTask_slot()
                 ui->tableWidget_info->item(m_taskI, 0)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);  //设置文本居中
                 ui->tableWidget_info->item(m_taskI, 1)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
                 ui->tableWidget_info->item(m_taskI, 2)->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
-                if(edit->cmb_level_index() == 2)   //紧急为红色
+                int levelIndex = edit->cmb_level_index();
+                if(levelIndex == 2)       //紧急为红色
                 {
                     ui->tableWidget_info->item(m_taskI, 0)->setTextColor(QColor(Qt::red));
                 }
-                else if(edit->cmb_level_index() == 1)  //重要为黄色
+                else if(levelIndex == 1)  //重要为黄色
                 {
                     ui->tableWidget_info->item(m_taskI, 0)->setTextColor(QColor(Qt::darkYellow));
                 }
             }
+            edit->close();
         }
     }
 }
@@ -1050,11 +1072,12 @@ void MainWidget::dowork(int _contIndex)
     {
         m_isStartUp = true;
         ui->textEdit_total->append("巡航任务已完成!");
+        sendDataTimer->start(300);
     }
     else
     {
         QByteArray arr;
-        sendDataTimer->stop();
+        //sendDataTimer->stop();
         if(1 == _contIndex)
         {
             arr = "@M100 V\r\n";                   //水质
@@ -1074,7 +1097,8 @@ void MainWidget::dowork(int _contIndex)
         m_spcomm->writeData(ch, arr.length());         //发送任务指令
         timer_speed->stop();                        //速度定时器关
         timer_speedStop->start(1000);               //减速/加速定时器开
-        workTimer->start(5000);                    //任务倒计时10s定时器开
+        workTimer->start(10000);                    //任务倒计时10s定时器开
+        ui->label_UWB->setStopCalc(true);           //停止计算
         return;
     }
 
@@ -1098,6 +1122,8 @@ void MainWidget::dowork(int _contIndex)
             char *ch = arr.data();
             m_spcomm->writeData(ch, arr.length());
 
+            QTimer::singleShot(300, [=](){m_spcomm->writeData(ch, arr.length());});
+
             ui->textEdit_total->append("已经顺利完成所有任务！");
             on_btn_run_clicked();
             finishedTask = true;
@@ -1106,6 +1132,8 @@ void MainWidget::dowork(int _contIndex)
             ui->lineEdit_nowTask->clear();
             return;
         }
+        ui->label_UWB->setArriveBeforeRun(false);
+        ui->label_UWB->setEnabled(false);
         contIndex = ui->label_UWB->setNowIndex(path.route[nowtaski]);
 //    });
 }
@@ -1349,7 +1377,6 @@ void createPath(MainWidget *e, const bool &aut)
             _tempDis0 = e->astar->getG(e->ui->label_UWB->start, e->ui->label_UWB->end[i], false);
             dis0[i] = _tempDis0;
             Wdis0[i] = e->calcW(_tempDis0, e->ui->label_UWB->end[i].omega);
-            //qDebug() << Wdis0[i];
         }
         e->sa->transportW(WBuf, uwbTaskIndex);                                              //传输距离数组，并初始化
         e->sa->setNum(uwbTaskIndex);
@@ -1364,15 +1391,17 @@ void createPath(MainWidget *e, const bool &aut)
         nowTask_index = e->find_taskName(e->path.code[0]);                                                    //通过任务代号获取当前正在执行的任务
         //------------------------------------------------------------------------------------------------------------------------------------------------
         //调试
-//        e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->start, e->ui->label_UWB->end.at(e->path.route[0]), false), e->path.route[0], true);      //A*寻路获取节点
+//        e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->start, e->ui->label_UWB->end.at(e->path.route[0]), false), e->path.route[0]);      //A*寻路获取节点
 //        for(int i = 0; i < e->_nodeNum - 1; i++)
 //        {
-//            e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->end.at(e->path.route[i]), e->ui->label_UWB->end.at(e->path.route[i+1]), false), e->path.route[i+1], true);
+//            e->ui->label_UWB->get_Node(e->astar->GetPath(e->ui->label_UWB->end.at(e->path.route[i]), e->ui->label_UWB->end.at(e->path.route[i+1]), false), e->path.route[i+1]);
 //        }
         e->searchPath();
+        //e->test();
         //------------------------------------------------------------------------------------------------------------------------------------------------
         for(int i = 0; i < e->_nodeNum; i++)                                                                 //text_total显示路径顺序
         {
+            //qDebug() << e->path.route[i] << "times :" << i;
             text.append(QString(" -> %1").arg(e->path.code[i]));
         }
         e->ui->lineEdit_nowTask->setText(e->ui->label_UWB->UWBtask[nowTask_index].UWBTaskName);                 //显示当前任务名称
@@ -1412,7 +1441,8 @@ int MainWidget::calcW(const int &G, const int &omega)        //最大长度4500�
     }
     else if(2 == omega)                                      //重要 (4500 - G) * 0.5
     {
-        return static_cast<int>(2250 - G / 2);               //必为正数
+        //return static_cast<int>(2250 - G / 2);               //必为正数
+        return static_cast<int>(G / 2);
     }
     else
     {
@@ -1463,65 +1493,119 @@ int MainWidget::calcW(const int &G, const int &omega)        //最大长度4500�
 //    }
 //}
 
+//void MainWidget::test()
+//{
+//    uchar area = 0;
+//    uchar route = path.route[0];
+//    //size_t taskSize = ui->label_UWB->end.size();
+//    APoint start = ui->label_UWB->start;                                        //相对起点
+//    APoint end = ui->label_UWB->end.at(route);                                  //相对终点
+//    APoint loginP = ui->label_UWB->logInPoint.front();
+//    if(end.inArea != area)
+//    {
+//        ui->label_UWB->get_Node(astar->GetPath(start, loginP, false), -2);
+//        ui->label_UWB->get_Node(astar->GetPath(loginP, end, false), route);
+//        area = end.inArea;
+//    }
+//    else
+//    {
+//        ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+//    }
+
+//    for(size_t i = 0; i < _nodeNum - 1; i++)
+//    {
+//        if(end.inArea != area)
+//        {
+//            ui->label_UWB->get_Node(astar->GetPath(start, loginP, false), -2);
+//            ui->label_UWB->get_Node(astar->GetPath(loginP, end, false), route);
+//            area = end.inArea;
+//        }
+//        else
+//        {
+//            ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+//        }
+//    }
+//}
+
 void MainWidget::searchPath()
 {
+    uchar idx = 0;
     uchar route = path.route[0];
+    size_t logPointSize = ui->label_UWB->logInPoint.size();
     APoint start = ui->label_UWB->start;                                        //相对起点
     APoint end = ui->label_UWB->end.at(route);                                  //相对终点
-    QPoint qStart = start.toQPoint()*10;                                        //转QPoint用于与多边形相交判断
-    QPoint qEnd = end.toQPoint()*10;
-    bool intersect = ui->label_UWB->intersect(qStart, qEnd);
-    size_t landPointSize = ui->label_UWB->logInPoint.size();
-    if(intersect && landPointSize)                                              //相交并且设有登陆点
+    std::vector<APointPuls> logPoint = searchPathSupplement();
+
+    if(logPointSize == 0)
     {
-        APoint minLand = getMinLand(start)/10;                                  //找离相对起点最近的登陆点
-        ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), -2);     //相对起点去登陆台
-        ui->label_UWB->get_Node(astar->GetPath(minLand, end, false), route);
-        ui->label_UWB->addlandAfter(route);
+        ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);      //A*寻路获取节点
+
+        for(int i = 0; i < _nodeNum - 1; i++)
+        {
+            start = ui->label_UWB->end.at(path.route[i]);
+            end = ui->label_UWB->end.at(path.route[i+1]);
+            route = path.route[i+1];
+            ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+        }
     }
     else
     {
-        ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);      //A*寻路获取节点
-    }
-
-    for(int i = 0; i < _nodeNum - 1; i++)
-    {
-        route = path.route[i+1];
-        start = ui->label_UWB->end.at(path.route[i]);
-        end = ui->label_UWB->end.at(path.route[i+1]);
-        qStart = start.toQPoint()*10;
-        qEnd = end.toQPoint()*10;
-        intersect = ui->label_UWB->intersect(qStart, qEnd);
-        if(intersect && landPointSize)
+        std::sort(logPoint.begin(), logPoint.end(), &sort_APointPlus);
+        if(logPoint.front().route == route)
         {
-            APoint minLand = getMinLand(start)/10;
-            ui->label_UWB->get_Node(astar->GetPath(start, minLand, false), route);
-            ui->label_UWB->get_Node(astar->GetPath(minLand, end, false), route);
+            APoint login = logPoint.front().logPoint/10;
+            ui->label_UWB->get_Node(astar->GetPath(start, login, false), -2);      //A*寻路获取节点
+            ui->label_UWB->get_Node(astar->GetPath(login, end, false), route);
             ui->label_UWB->addlandAfter(route);
+            idx++;
         }
         else
         {
-            ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+            ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);      //A*寻路获取节点
+        }
+
+        for(int i = 0; i < _nodeNum - 1; i++)
+        {
+            start = ui->label_UWB->end.at(path.route[i]);
+            end = ui->label_UWB->end.at(path.route[i+1]);
+            route = path.route[i+1];
+            if(idx >= logPointSize)
+            {
+                ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+            }
+            else if(route == logPoint.at(idx).route)
+            {
+                APoint login = logPoint.at(idx).logPoint/10;
+                ui->label_UWB->get_Node(astar->GetPath(start, login, false), -2);
+                ui->label_UWB->get_Node(astar->GetPath(login, end, false), route);
+                ui->label_UWB->addlandAfter(route);
+                if(idx < logPointSize)
+                {
+                    idx++;
+                }
+            }
+            else
+            {
+                ui->label_UWB->get_Node(astar->GetPath(start, end, false), route);
+            }
         }
     }
 }
 
 std::vector<APointPuls> MainWidget::searchPathSupplement()
 {
+    uchar routeBuf = 100;
     uchar route = path.route[0];
     APoint start = ui->label_UWB->start;                                        //相对起点
     APoint end = ui->label_UWB->end.at(route);                                  //相对终点
     QPoint qStart = start.toQPoint()*10;                                        //转QPoint用于与多边形相交判断
     QPoint qEnd = end.toQPoint()*10;
-    //APointPuls lastPush;
     std::vector<APointPuls> res;
-    std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
-    //size_t logPointSize = logPoint.size();
     bool vertical = calcVector(start, end);
     bool intersect = ui->label_UWB->intersect(qStart, qEnd);
     uchar num = getContainNum(start, end, vertical);
     APoint minLog;
-    APointPuls temp;
+    APointPuls temp(route, minLog);
 
     if(intersect || num > 1)                                                    //两点连线与区域相交或者两点间有两个登陆点，直接保存登陆点与终点
     {
@@ -1532,13 +1616,14 @@ std::vector<APointPuls> MainWidget::searchPathSupplement()
     else if(num == 1)
     {
         minLog = getMinLand(start, end, vertical);
-        route = 60;                                                             //60代表起点
+        routeBuf = route;                                                             //-1代表起点
     }
 
     for(int i = 0; i < _nodeNum - 1; i++)
     {
         start = ui->label_UWB->end.at(path.route[i]);
         end = ui->label_UWB->end.at(path.route[i+1]);
+        route = path.route[i+1];
         qStart = start.toQPoint()*10;
         qEnd = end.toQPoint()*10;
         vertical = calcVector(start, end);
@@ -1554,32 +1639,66 @@ std::vector<APointPuls> MainWidget::searchPathSupplement()
         else if(num == 1)
         {
             minLog = getMinLand(start, end, vertical);
-            route = path.route[i+1];                                                             //60代表起点
+            routeBuf = route;
         }
     }
-    temp = APointPuls(route, minLog);
-    res.push_back(temp);
+    const uchar logSize = ui->label_UWB->logInPoint.size();
+    if(res.size() < logSize)
+    {
+        temp = APointPuls(routeBuf, minLog);
+        res.push_back(temp);
+    }
     return res;
 }
 
-uchar MainWidget::getContainNum(const APoint &start, const APoint &end, const bool vert)            //计算两点间登陆点个数函数
+uchar MainWidget::getContainNum(const APoint &start, const APoint &end, const bool &vert)            //计算两点间登陆点个数函数
 {
+    //qDebug() << start.x << ", " << start.y;
+    //qDebug() << end.x << ", " << end.y;
     uchar times = 0;
+    int tolDis = 0;
+    int posDis = 0;
     std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
-    for(const auto &p : logPoint)
+    //qDebug() << logPoint.front().x << ", " << logPoint.front().y;
+    if(vert)
     {
-        if(vert)
+        for(const auto &p : logPoint)
         {
-            if(p.vertical && start.y < p.y && p.y < end.y)
+            tolDis = end.y - start.y;
+            posDis = p.y/10 - start.y;
+            if(p.vertical)
             {
-                times++;
+                if(tolDis > 0)
+                {
+                    if(posDis < tolDis)
+                        times++;
+                }
+                else
+                {
+                    if(posDis > tolDis)
+                        times++;
+                }
             }
         }
-        else
+    }
+    else
+    {
+        for(const auto &p : logPoint)
         {
-            if(!p.vertical && start.x < p.x && p.x < end.x)
+            tolDis = end.x - start.x;
+            posDis = end.x - p.x/10;
+            if(!p.vertical)
             {
-                times++;
+                if(tolDis > 0)
+                {
+                    if(posDis < tolDis)
+                        times++;
+                }
+                else
+                {
+                    if(posDis > tolDis)
+                        times++;
+                }
             }
         }
     }
@@ -1588,16 +1707,16 @@ uchar MainWidget::getContainNum(const APoint &start, const APoint &end, const bo
 
 bool MainWidget::calcVector(const APoint &start, const APoint &end)
 {
-    int dx = end.x - start.x;
-    int dy = end.y - start.y;
-    int res = abs(dy) - abs(dx);
-    if(res)
+    int dx = abs(end.x - start.x);
+    int dy = abs(end.y - start.y);
+    int res = (dy / dialog->getRatio()) - dx;
+    if(res <= 0)
     {
-        true;           //y距离大于x距离，判断为垂直走向
+        return false;           //y距离大于x距离，判断为垂直走向
     }
     else
     {
-        false;           //x距离大于y距离，判断为水平走向
+        return true;           //x距离大于y距离，判断为水平走向
     }
 }
 
@@ -1622,34 +1741,81 @@ APoint MainWidget::getMinLand(const APoint &start, const APoint &end, const bool
     uint y = 0;
     uint minDis = 1e5;
     APoint res;
+    int tolDis = 0;
+    int posDis = 0;
     std::vector<APoint> &logPoint = ui->label_UWB->logInPoint;
     for(const auto &p : logPoint)
     {
         if(vert)
         {
-            if(p.vertical && start.y < p.y && p.y < end.y)
+            tolDis = end.y - start.y;
+            posDis = p.y/10 - start.y;
+            if(p.vertical)
             {
-                x = abs(start.x - p.x);
-                y = abs(start.y - p.y);
-                uint total = x + y;
-                if(total < minDis)
+                if(tolDis > 0)
                 {
-                    minDis = total;
-                    res = p;
+                    if(posDis < tolDis)
+                    {
+                        x = abs(start.x - p.x/10);
+                        y = abs(start.y - p.y/10);
+                        uint total = x + y;
+                        if(total <= minDis)
+                        {
+                            minDis = total;
+                            res = p;
+                        }
+                    }
+                }
+                else
+                {
+                    if(posDis > tolDis)
+                    {
+                        x = abs(start.x - p.x/10);
+                        y = abs(start.y - p.y/10);
+                        uint total = x + y;
+                        if(total <= minDis)
+                        {
+                            minDis = total;
+                            res = p;
+                        }
+                    }
                 }
             }
         }
         else
         {
-            if(!p.vertical && start.x < p.x && p.x < end.x)
+            tolDis = end.x - start.x;
+            posDis = p.x/10 - start.x;
+            if(!p.vertical)
             {
-                x = abs(start.x - p.x);
-                y = abs(start.y - p.y);
-                uint total = x + y;
-                if(total < minDis)
+                if(tolDis > 0)
                 {
-                    minDis = total;
-                    res = p;
+                    if(posDis < tolDis)
+                    {
+                        x = abs(start.x - p.x/10);
+                        y = abs(start.y - p.y/10);
+                        uint total = x + y;
+                        if(total <= minDis)
+                        {
+                            minDis = total;
+                            res = p;
+                        }
+                    }
+                }
+                else
+                {
+                    if(posDis > tolDis)
+                    {
+                        x = abs(start.x - p.x/10);
+                        y = abs(start.y - p.y/10);
+                        uint total = x + y;
+                        //qDebug() << "min :" << minDis << "tol :"<< total << p.x << ", " << p.y;
+                        if(total <= minDis)
+                        {
+                            minDis = total;
+                            res = p;
+                        }
+                    }
                 }
             }
         }
@@ -1687,6 +1853,7 @@ void MainWidget::slot_landing()                                         //准备
 
 void MainWidget::slot_landed()                                          //登陆完成槽函数
 {
+    ui->label_UWB->setLanding(true);
     sendDataTimer->start(300);
 }
 
@@ -1713,3 +1880,61 @@ void MainWidget::slot_comeBack()
 //{
 ////    QTimer::singleShot(sec, this, [](){qDebug() << "<>???";});
 //}
+
+void MainWidget::slot_fixWaterShow()
+{
+    if(fixWaterShowing)
+    {
+        fixWaterShowing = false;
+        fixP1->setParent(ui->label_UWB);
+        fixP1->move(100, 100);
+        fixP1->show();
+        fixP2->setParent(ui->label_UWB);
+        fixP2->move(400, 100);
+        fixP2->show();
+        fixP3->setParent(ui->label_UWB);
+        fixP3->move(100, 300);
+        fixP3->show();
+    }
+    else
+    {
+        fixWaterShowing = true;
+        fixP1->hide();
+        fixP2->hide();
+        fixP3->hide();
+    }
+}
+
+void MainWidget::slot_receiveData(const QByteArray &message, const QMqttTopicName &topic)
+{
+    QList<QByteArray> list = message.split(' ');
+    const int waterId = list.front().toInt();
+    const QByteArray temperature = list.at(1);
+    const QByteArray turbidity = list.at(2);
+    const QByteArray pH = list.at(3);
+    switch (waterId)
+    {
+    case 65:
+        fixP1->setTemperatureValue(temperature);
+        fixP1->setTurbidityValue(turbidity);
+        fixP1->setpHValue(pH);
+        break;
+    case 66:
+        fixP2->setTemperatureValue(temperature);
+        fixP2->setTurbidityValue(turbidity);
+        fixP2->setpHValue(pH);
+        break;
+    case 96:
+        fixP3->setTemperatureValue(temperature);
+        fixP3->setTurbidityValue(turbidity);
+        fixP3->setpHValue(pH);
+        break;
+    default:
+        break;
+    }
+}
+
+bool sort_APointPlus(const APointPuls &a, const APointPuls &b)
+{
+    return a.route < b.route;
+}

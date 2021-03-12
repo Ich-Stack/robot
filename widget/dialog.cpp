@@ -3,7 +3,6 @@
 #include<QIntValidator>
 #include <QPaintEvent>
 #include <QPainter>
-#include <QDebug>
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
@@ -42,6 +41,24 @@ void Dialog::on_btn_ok_clicked()
     }
     isclick = true;
     this->close();
+}
+
+uint Dialog::getArriveDis()
+{
+    uint x = 90000 / getLength();
+    uint y = 90000 / getWidth();
+    uint pxDis = pow(x, 2) + pow(y, 2);
+    pxDis /= 2;
+    return pxDis;
+}
+
+uint Dialog::getLandingDis()
+{
+    uint x = 1020000 / getLength();
+    uint y = 1020000 / getWidth();
+    uint pxDis = pow(x, 2) + pow(y, 2);
+    pxDis /= 4;
+    return pxDis;
 }
 
 void Dialog::on_btn_cancel_clicked()

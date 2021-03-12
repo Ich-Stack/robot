@@ -102,14 +102,16 @@ PATH CS::generate(PATH p)
     gen.code[y] = tmpCode;
 
     gen.dis = 0;
-    for (int i = 0; i < nodeNum - 1; ++i)
+    for (int i = 0; i < nodeNum - 1; i++)
     {
-        gen.dis += W[gen.route[i]][gen.route[i + 1]];           //每个任务之间做路径优化做寻找最短路径
-        gen.dis_alone[i+1] = W[gen.route[i]][gen.route[i + 1]];
+        int WBuf = W[gen.route[i]][gen.route[i + 1]];
+        if(WBuf < 0)
+        {
+            WBuf -= static_cast<int>(WBuf - (WBuf / 10 * i));
+        }
+        gen.dis += WBuf;           //每个任务之间做路径优化做寻找最短路径
     }
     gen.dis += _dis0[gen.route[0]];                             //任务间最短路径加上设备当前坐标与第一个目标点的距离
-    gen.dis_alone[0] = _dis0[gen.route[0]];
-    //gen.dis += _dis0_end[gen.route[nodeNum-1]];                 //加上最后一个任务坐标点回到起点的距离
 
     return gen;
 }
@@ -117,7 +119,7 @@ PATH CS::generate(PATH p)
 void CS::transportW(int (&_W)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
 {
     _UWBTaskIndex = index;
-    QFile  myfile("G.txt");                                     //创建一个输出文件的文档
+    QFile  myfile("W.txt");                                     //创建一个输出文件的文档
     for(int i = 0; i < MAX_CITY_NUM; i++)
     {
         for(int j = 0; j < MAX_CITY_NUM; j++)
@@ -126,7 +128,7 @@ void CS::transportW(int (&_W)[MAX_CITY_NUM][MAX_CITY_NUM], int index)
         }
     }
     //输出在G.txt文件中
-    if (myfile.open(QFile::WriteOnly|QFile::Truncate))//注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+    if (myfile.open(QFile::WriteOnly | QFile::Truncate))//注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
     {
         //读取之前setPlainText的内容，或直接输出字符串内容QObject::tr()
         QTextStream out(&myfile);

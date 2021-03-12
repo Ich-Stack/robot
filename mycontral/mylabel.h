@@ -80,23 +80,33 @@ public:
     void slot_load();
     void slot_save();
     void slot_waringShow();
+    void setLandingPoint(const bool &flag);
     void setLanding(const bool &flag);
     bool intersect(const QPoint &a, const QPoint &b);
     void addlandAfter(const int &_landAfter);
     void setlandIndex(const uchar &idx);
     void setIsVertical(const bool &res);
+    void setArriveDis(const uint &dis);
+    void setLandingDis(const uint &dis);
+    void setArriveBeforeRun(const bool &res);
+    bool getArriveBeforeRun();
 
 private:
     int nowIndex = 0;
     uchar landIndex = 0;
     uchar landAfterIndex = 0;
+    uint arriveDis = 0;
+    uint landingDis = 0;
     //int route = 0;
     std::vector<uchar> landAfter;
+    std::vector<QPoint> areaA;
     int _x = 0, _y = 0;
     double ratio = 0;
+    bool arriveBeforeRun = false;
     bool inArea = false;
     bool stopCalc = true;
     bool allFirst = true;                                          //全局第一次生成路径记录，起点为全局起点的标志位
+    bool notAllLanded = true;
     bool landing = true;                                           //正在登陆标志
     bool isLandingPoint = false;                                   //登陆点标志
     bool isChange = false;                                         //标志
@@ -121,6 +131,8 @@ private:
     void loadEnableArea();
     void loadLandPoint();
     void initMaze();
+    //bool inA(const uint &_x, const uint &_y);
+    //void loadAreaA();
 
 signals:
     void isArrive();

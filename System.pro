@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    widget/fixwater.cpp \
     main.cpp \
     algorithm/astar.cpp \
     algorithm/cs.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
     algorithm/cs.h \
     algorithm/minheap.h \
     com/comm.h \
+    widget/fixwater.h \
     mqtt/mqtt.h \
     mycontral/mybtn.h \
     mycontral/myframe.h \
@@ -64,6 +66,7 @@ FORMS += \
     contral.ui \
     dialog.ui \
     edit.ui \
+    fixwater.ui \
     init.ui \
     mainwidget.ui \
     videowidget.ui \

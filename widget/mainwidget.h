@@ -32,10 +32,11 @@
 #include "videowidget.h"
 #include "mqtt/mqtt.h"
 #include "com/comm.h"
+#include "fixwater.h"
 #include "contral.h"
 #include "dialog.h"
-#include "edit.h"
 #include "choose.h"
+#include "edit.h"
 
 struct taskNameAndCode{
     int code;
@@ -84,6 +85,7 @@ public slots:
     void slot_textAppend(const QString &str);
     void slot_landing();
     void slot_landed();
+    void slot_fixWaterShow();
 
 private slots:
     int find_taskName(int code);
@@ -140,6 +142,7 @@ private:
     void slot_load();
     void slot_comeBack();
     bool calcVector(const APoint &start, const APoint &end);
+    //void test();
 //----------------------------------------------------------------
     //手动设置路径部分
     double m_setPathPointLng[50];                       //手动路径点经度数组
@@ -199,8 +202,16 @@ private:
 //-----------------------------------------------------------------
     //视频模块
     VideoWidget *m_videowidget;  //视频窗口
+//-----------------------------------------------------------------
+    //定点水质
+    bool fixWaterShowing = true;
+    FIXWATER *fixP1;
+    FIXWATER *fixP2;
+    FIXWATER *fixP3;
+    void slot_receiveData(const QByteArray &message, const QMqttTopicName &topic);
 };
 
 void createPath(MainWidget *e, const bool &aut);                                                                     //生成路径回调函数
+bool sort_APointPlus(const APointPuls &a, const APointPuls &b);
 
 #endif // MAINWIDGET_H
