@@ -146,7 +146,7 @@ border-radius:10px;</string>
      </sizepolicy>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page_4">
      <property name="sizePolicy">
@@ -155,7 +155,7 @@ border-radius:10px;</string>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <widget class="QWebEngineView" name="map_widget" native="true">
+     <widget class="QWidget" name="map_widget" native="true">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -1855,12 +1855,6 @@ QHeaderView::section
    <class>MYBTN</class>
    <extends>QPushButton</extends>
    <header location="global">mycontral/mybtn.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QWebEngineView</class>
-   <extends>QWidget</extends>
-   <header location="global">qwebengineview.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>myLabel</class>

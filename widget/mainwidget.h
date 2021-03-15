@@ -8,13 +8,11 @@
 #include <QWebEngineView>
 #include <QJsonDocument>
 #include <QApplication>
-#include <QMediaPlayer>
 #include <QMessageBox>
 #include <QWebChannel>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
-#include <QWebSocket>
 #include <iostream>
 #include <QWidget>
 #include <QString>
@@ -71,7 +69,6 @@ public:
     explicit MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
 
-    QWebChannel *channel;
     double generateRand(float min, float max);            //产生随机数函数
     static void setAckTrue();
     friend void createPath(MainWidget *e, const bool &aut);
@@ -114,6 +111,8 @@ private:
 
     virtual void closeEvent(QCloseEvent *event) override;
 //----------------------------------------------------------------
+    QWebChannel *channel = nullptr;
+    QWebEngineView *webView = nullptr;
     //任务路径部分
     EDIT *edit;
     CHOOSE *choose;

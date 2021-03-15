@@ -32,10 +32,11 @@ MainWidget::MainWidget(QWidget *parent):
     workTimer = new QTimer();
     channel = new QWebChannel();
     sendDataTimer = new QTimer();
+    webView = new QWebEngineView();
+    m_videowidget = new VideoWidget();    //打开视频窗口
     fixP1 = new FIXWATER("65", nullptr);
     fixP2 = new FIXWATER("66", nullptr);
     fixP3 = new FIXWATER("96", nullptr);
-    m_videowidget = new VideoWidget();    //打开视频窗口
 
     memset(m_setPathPointLng, 0.0, sizeof(double) * 50);        //初始化数组
     memset(m_setPathPointLat, 0.0, sizeof(double) * 50);
@@ -55,11 +56,13 @@ MainWidget::MainWidget(QWidget *parent):
     ui->btn_clearTime->setNorAndPre(":/picture/btn_clear.png");
     ui->btn_monitoring->setNorAndPre(":/picture/btn_detection.png");
 
-    QString pwd = QDir::currentPath() + "/baiduMap.html";
-    channel->registerObject((pwd),this);                                       //创建与JS连接的对象content
-    this->ui->map_widget->page()->setWebChannel(channel);
-    this->ui->map_widget->page()->load(QUrl(pwd));
-    this->ui->map_widget->show();
+    webView->setParent(ui->map_widget);
+    webView->page()->setWebChannel(channel);
+    webView->resize(600, 600);
+    webView->load(QUrl("http://112.74.84.128/"));
+    channel->registerObject("sigma", this);                                       //创建与JS连接的对象content
+
+    ui->btn_run->setFocus();
 
     connect(choose->btn_auto, &QPushButton::clicked, this, &MainWidget::slot_createAuto);       //自动/手动路径连接
     connect(choose->btn_set, &QPushButton::clicked, this, &MainWidget::slot_createSet);
@@ -410,6 +413,7 @@ MainWidget::~MainWidget()
     delete timer_btnRun;
     delete sendDataTimer;
     delete timer_speedStop;
+    delete webView;
 }
 
 void MainWidget::receiveTaskCoordinate(QString Lng, QString Lat)   //接收任务坐标
@@ -1082,6 +1086,13 @@ void MainWidget::dowork(int _contIndex)
         {
             arr = "@M100 V\r\n";                   //水质
             ui->textEdit_total->append("正在执行水质检测任务 ...");
+            char *ch = arr.data();
+            m_spcomm->writeData(ch, arr.length());         //发送任务指令
+            timer_speed->stop();                        //速度定时器关
+            timer_speedStop->start(1000);               //减速/加速定时器开
+            ui->label_UWB->setStopCalc(true);           //停止计算
+            workTimer->start(5000);
+            return;
         }
         else if (2 == _contIndex)
         {
@@ -1097,8 +1108,8 @@ void MainWidget::dowork(int _contIndex)
         m_spcomm->writeData(ch, arr.length());         //发送任务指令
         timer_speed->stop();                        //速度定时器关
         timer_speedStop->start(1000);               //减速/加速定时器开
-        workTimer->start(10000);                    //任务倒计时10s定时器开
         ui->label_UWB->setStopCalc(true);           //停止计算
+        workTimer->start(10000);                    //任务倒计时10s定时器开
         return;
     }
 
@@ -1293,7 +1304,7 @@ void MainWidget::setStateColor(const unsigned char &r, const unsigned char &g, c
     const QString str = QString("border-radius:10px; background-color: rgb(%1, %2, %3)").arg(r).arg(g).arg(b);
     ui->label_s1->setStyleSheet(str);
     ui->label_s2->setStyleSheet(str);
-    ui->label_s3->setStyleSheet(str);
+    //ui->label_s3->setStyleSheet(str);
     ui->label_s4->setStyleSheet(str);
 }
 

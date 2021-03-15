@@ -1,11 +1,11 @@
 QT       += core gui
 QT       += webenginewidgets
-QT       += multimedia
+#QT       += multimedia
 QT       += webchannel
 QT       += serialport
-QT       += script
+#QT       += script
 QT       += network
-QT       += websockets
+#QT       += websockets
 
 RC_ICONS = 64.ico
 
